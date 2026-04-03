@@ -1,0 +1,22 @@
+env: "development"
+
+database:
+  host: localhost
+  port: "7111"
+  user: "postgres"
+  password: "postgres"
+  dbname: "fitnow"
+  max_attempts: 5
+  ssl: disable
+
+
+http_server:
+  host: 0.0.0.0
+  port: 8000
+  timeout: 120s
+  debug: true
+  idle_timeout: 60s
+
+
+
+

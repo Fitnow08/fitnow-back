@@ -1,0 +1,67 @@
+package auth
+
+import (
+	"context"
+	sq "github.com/Masterminds/squirrel"
+	constants "github.com/Sanchir01/fitnow/internal/models/contants"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"log/slog"
+)
+
+type Repository struct {
+	db  *pgxpool.Pool
+	log *slog.Logger
+}
+type UserDB struct {
+	ID    uuid.UUID `json:"id" db:"id"`
+	Email string    `json:"email" db:"email"`
+	Title string    `json:"title" db:"title"`
+}
+
+func NewRepository(log *slog.Logger, db *pgxpool.Pool) *Repository {
+	return &Repository{log: log, db: db}
+}
+
+func (r *Repository) CreateUser(ctx context.Context, email, title string, password []byte, tx pgx.Tx) (*UserDB, error) {
+	query, arg, err := sq.Insert(constants.UsersTableName).
+		Columns("title", "password", "email").Values(email, title, password).
+		Prefix("RETURNING id, email,title").
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		r.log.Error("failed create user", "error", err.Error())
+		return nil, err
+	}
+	var user UserDB
+
+	if err := r.db.QueryRow(ctx, query, arg).Scan(&user.ID, &user.Email, &user.Title); err != nil {
+		r.log.Error("failed create user", "error", err.Error())
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *Repository) UserByEmail(ctx context.Context, email string) (*UserDB, error) {
+	conn, err := r.db.Acquire(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Release()
+	query, args, err := sq.Select("id").
+		From("users").
+		Where(sq.Eq{"email": email}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		r.log.Error("failed get user by email", "error", err.Error())
+		return nil, err
+	}
+	var user UserDB
+	if err := r.db.QueryRow(ctx, query, args...).Scan(&user.ID, &user.Email, &user.Title); err != nil {
+		r.log.Error("failed get user by email", "error", err.Error())
+		return nil, err
+	}
+	return &user, nil
+}
