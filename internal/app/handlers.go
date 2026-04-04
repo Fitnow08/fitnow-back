@@ -1,7 +1,16 @@
 package app
 
-type Handlers struct{}
+import (
+	"github.com/Sanchir01/fitnow/internal/feature/auth"
+	"log/slog"
+)
 
-func NewHandlers() *Handlers {
-	return &Handlers{}
+type Handlers struct {
+	AuthHandler *auth.Handler
+}
+
+func NewHandlers(l *slog.Logger, srv *Services) *Handlers {
+	return &Handlers{
+		AuthHandler: auth.NewHandler(l, srv.AuthService),
+	}
 }

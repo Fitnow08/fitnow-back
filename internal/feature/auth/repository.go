@@ -5,7 +5,6 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	constants "github.com/Sanchir01/fitnow/internal/models/contants"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
 )
@@ -24,10 +23,11 @@ func NewRepository(log *slog.Logger, db *pgxpool.Pool) *Repository {
 	return &Repository{log: log, db: db}
 }
 
-func (r *Repository) CreateUser(ctx context.Context, email, title string, password []byte, tx pgx.Tx) (*UserDB, error) {
+func (r *Repository) CreateUser(ctx context.Context, email, title string, password []byte) (*UserDB, error) {
 	query, arg, err := sq.Insert(constants.UsersTableName).
-		Columns("title", "password", "email").Values(email, title, password).
-		Prefix("RETURNING id, email,title").
+		Columns("title", "password", "email").
+		Values(title, password, email).
+		Suffix("RETURNING id, email,title").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
@@ -36,7 +36,7 @@ func (r *Repository) CreateUser(ctx context.Context, email, title string, passwo
 	}
 	var user UserDB
 
-	if err := r.db.QueryRow(ctx, query, arg).Scan(&user.ID, &user.Email, &user.Title); err != nil {
+	if err := r.db.QueryRow(ctx, query, arg...).Scan(&user.ID, &user.Email, &user.Title); err != nil {
 		r.log.Error("failed create user", "error", err.Error())
 		return nil, err
 	}
@@ -55,12 +55,12 @@ func (r *Repository) UserByEmail(ctx context.Context, email string) (*UserDB, er
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
-		r.log.Error("failed get user by email", "error", err.Error())
+		r.log.Warn("failed get user by email", "error", err.Error())
 		return nil, err
 	}
 	var user UserDB
 	if err := r.db.QueryRow(ctx, query, args...).Scan(&user.ID, &user.Email, &user.Title); err != nil {
-		r.log.Error("failed get user by email", "error", err.Error())
+		r.log.Error("failed get user by email sql", "error", err.Error())
 		return nil, err
 	}
 	return &user, nil

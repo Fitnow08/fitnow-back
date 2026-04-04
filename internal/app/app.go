@@ -27,7 +27,8 @@ func NewApp(ctx context.Context) (*App, error) {
 		return nil, err
 	}
 	repo := NewRepository(databases, l)
-	handler := NewHandlers()
+	services := NewServices(repo, l)
+	handler := NewHandlers(l, services)
 	httpsrv := httpserver.NewHTTPServer(cfg.HttpServer.Host, cfg.HttpServer.Port, cfg.HttpServer.Timeout,
 		cfg.HttpServer.IdleTimeout,
 	)

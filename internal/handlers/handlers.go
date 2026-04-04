@@ -27,7 +27,7 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 			w.Write([]byte("ok"))
 		})
 		r.Route("/auth", func(r chi.Router) {
-
+			r.Post("/register", handlers.AuthHandler.Register)
 		})
 	})
 	return r
