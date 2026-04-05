@@ -11,15 +11,14 @@ import (
 )
 
 type Claims struct {
-	ID   uuid.UUID `json:"id"`
-	Role string    `json:"role"`
+	ID uuid.UUID `json:"id"`
+
 	jwt.RegisteredClaims
 }
 
 func GenerateJwtToken(id uuid.UUID, role string, expire time.Time) (string, error) {
 	claim := &Claims{
-		ID:   id,
-		Role: role,
+		ID: id,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expire),
 		},
@@ -95,7 +94,7 @@ func NewAccessToken(tokenString string, threshold time.Duration, w http.Response
 	}
 
 	newExpire := time.Now().Add(4 * time.Hour)
-	newToken, err := GenerateJwtToken(claims.ID, claims.Role, newExpire)
+	newToken, err := GenerateJwtToken(claims.ID, "user", newExpire)
 	if err != nil {
 		return "", err
 	}

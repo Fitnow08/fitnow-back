@@ -16,6 +16,11 @@ type RegisterRequest struct {
 	Name     string `json:"name" validate:"required"`
 }
 
+type LoginRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8,strong_password"`
+}
+
 func NewValidator() *validator.Validate {
 	v := validator.New()
 	v.RegisterValidation("strong_password", func(fl validator.FieldLevel) bool {

@@ -14,9 +14,10 @@ type Repository struct {
 	log *slog.Logger
 }
 type UserDB struct {
-	ID    uuid.UUID `json:"id" db:"id"`
-	Email string    `json:"email" db:"email"`
-	Title string    `json:"title" db:"title"`
+	ID       uuid.UUID `json:"id" db:"id"`
+	Email    string    `json:"email" db:"email"`
+	Password []byte    `json:"password" db:"password"`
+	Title    string    `json:"title" db:"title"`
 }
 
 func NewRepository(log *slog.Logger, db *pgxpool.Pool) *Repository {
@@ -49,7 +50,8 @@ func (r *Repository) UserByEmail(ctx context.Context, email string) (*UserDB, er
 		return nil, err
 	}
 	defer conn.Release()
-	query, args, err := sq.Select("id").
+	query, args, err := sq.
+		Select("id,password,email,title").
 		From("users").
 		Where(sq.Eq{"email": email}).
 		PlaceholderFormat(sq.Dollar).
@@ -59,7 +61,7 @@ func (r *Repository) UserByEmail(ctx context.Context, email string) (*UserDB, er
 		return nil, err
 	}
 	var user UserDB
-	if err := r.db.QueryRow(ctx, query, args...).Scan(&user.ID, &user.Email, &user.Title); err != nil {
+	if err := r.db.QueryRow(ctx, query, args...).Scan(&user.ID, &user.Password, &user.Email, &user.Title); err != nil {
 		r.log.Error("failed get user by email sql", "error", err.Error())
 		return nil, err
 	}

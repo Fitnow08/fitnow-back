@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/Sanchir01/fitnow/internal/models/domain"
 	"github.com/jackc/pgx/v5"
 	"log/slog"
@@ -46,5 +47,24 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*domain.Us
 		ID:    userdb.ID,
 		Email: userdb.Email,
 		Title: userdb.Title,
+	}, nil
+}
+
+func (s *Service) Login(ctx context.Context, email, password string) (*domain.User, error) {
+	const op = "Auth.Service.Login"
+	log := s.log.With("op", op)
+
+	user, err := s.authrepository.UserByEmail(ctx, email)
+	if err != nil {
+		log.Error("failed to get user by email", "error", err)
+		return nil, err
+	}
+	if !VerifyPassword(user.Password, password) {
+		return nil, fmt.Errorf("invalid password")
+	}
+	return &domain.User{
+		ID:    user.ID,
+		Email: user.Email,
+		Title: user.Title,
 	}, nil
 }

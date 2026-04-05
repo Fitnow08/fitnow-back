@@ -28,6 +28,18 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 		})
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/register", handlers.AuthHandler.Register)
+			r.Post("/login", handlers.AuthHandler.Login)
+		})
+		r.Route("/train", func(r chi.Router) {
+			r.Get("/", handlers.TrainHandler.GetAllTrains)
+
+			r.Route("/", func(r chi.Router) {
+				r.Use(customMiddleware.AuthMiddleware(""))
+				r.Post("/", handlers.TrainHandler.CreateTrain)
+				r.Put("/", handlers.TrainHandler.UpdateTrain)
+				r.Delete("/", handlers.TrainHandler.DeleteTrain)
+			})
+
 		})
 	})
 	return r

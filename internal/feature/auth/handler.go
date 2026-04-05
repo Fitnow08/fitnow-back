@@ -12,6 +12,7 @@ import (
 
 type AuthService interface {
 	Register(ctx context.Context, req RegisterRequest) (*domain.User, error)
+	Login(ctx context.Context, email, password string) (*domain.User, error)
 }
 type Handler struct {
 	log         *slog.Logger
@@ -32,8 +33,28 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	const op = "Auth.Handler.Login"
 	log := h.log.With(slog.String("op", op))
 
-	log.Info("login")
-	render.JSON(w, r, "ok")
+	var req LoginRequest
+	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		log.Error("failed to decode body register")
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, "invalid request body")
+		return
+	}
+	if err := h.validator.Struct(req); err != nil {
+		log.Error("invalid request", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid request body"))
+		return
+	}
+	user, err := h.autgservice.Login(r.Context(), req.Email, req.Password)
+	if err != nil {
+		log.Error("failed to login", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, "failed login user")
+		return
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, user)
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +77,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.autgservice.Register(r.Context(), req)
 	if err != nil {
-		log.Error("failed to register user", slog.Any("err", err))
+		log.Error("failed to register user", slog.Any("err", err.Error()))
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, "failed register")
 		return
