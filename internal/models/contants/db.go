@@ -1,5 +1,6 @@
 package constants
 
 const (
-	UsersTableName = "users"
+	UsersTableName         = "users"
+	TrainCategoryTableName = "train_category"
 )

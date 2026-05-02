@@ -38,11 +38,14 @@ func NewRepository(db *pgxpool.Pool, log *slog.Logger) *Repository {
 	return &Repository{db: db, log: log}
 }
 
-func (r *Repository) GetAllPublicTrains(ctx context.Context) ([]*TrainDB, error) {
+func (r *Repository) GetAllPublicTrains(ctx context.Context, param AllTrainsParams) ([]*TrainDB, error) {
+	offset := (param.Page - 1) * param.Limit
 	query, args, err := sq.
 		Select("id", "title", "type", "duration", "is_public", "difficulty", "calories", "created_by", "created_at", "version").
 		From("trains").
 		Where(sq.Eq{"is_public": true}).
+		Limit(param.Limit).
+		Offset(offset).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {

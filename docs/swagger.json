@@ -1,0 +1,235 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a gateway server",
+        "title": "🚀 FITNOW",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "url": "https://github.com/Sanchir01"
+        },
+        "version": "0.0.1"
+    },
+    "host": "localhost:7111",
+    "basePath": "/api/v1",
+    "paths": {
+        "/train/category": {
+            "get": {
+                "description": "Get all train category",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "train-category"
+                ],
+                "summary": "GetAllTrainCategory",
+                "responses": {
+                    "200": {
+                        "description": "All data category trains",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/traincategory.TrainCategoryDB"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create category train",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "train-category"
+                ],
+                "summary": "CreateTrainCategory",
+                "responses": {
+                    "200": {
+                        "description": "create category response",
+                        "schema": {
+                            "$ref": "#/definitions/traincategory.CreateTrainCategoryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/train/category/{id}": {
+            "put": {
+                "description": "Update category train by id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "train-category"
+                ],
+                "summary": "UpdateTrainCategory",
+                "responses": {
+                    "200": {
+                        "description": "create category response",
+                        "schema": {
+                            "$ref": "#/definitions/traincategory.CreateTrainCategoryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "delete category train by id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "train-category"
+                ],
+                "summary": "DeleteTrainCategory",
+                "responses": {
+                    "200": {
+                        "description": "create category response",
+                        "schema": {
+                            "$ref": "#/definitions/traincategory.CreateTrainCategoryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/domain.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "domain.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
+        "traincategory.CreateTrainCategoryResponse": {
+            "type": "object"
+        },
+        "traincategory.TrainCategoryDB": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Enter your JWT token (you can use it with or without \"Bearer \" prefix). Example: \"eyJhbGc...\" or \"Bearer eyJhbGc...\"",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

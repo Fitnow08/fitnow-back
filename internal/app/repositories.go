@@ -2,18 +2,24 @@ package app
 
 import (
 	"github.com/Sanchir01/fitnow/internal/feature/auth"
+	"github.com/Sanchir01/fitnow/internal/feature/exercises"
 	"github.com/Sanchir01/fitnow/internal/feature/train"
+	traincategory "github.com/Sanchir01/fitnow/internal/feature/train-category"
 	"log/slog"
 )
 
 type Repositories struct {
-	AuthRepository  *auth.Repository
-	TrainRepository *train.Repository
+	AuthRepository          *auth.Repository
+	TrainRepository         *train.Repository
+	ExercisesRepository     *exercises.Repository
+	TrainCategoryRepository *traincategory.Repository
 }
 
 func NewRepository(db *Database, l *slog.Logger) *Repositories {
 	return &Repositories{
-		AuthRepository:  auth.NewRepository(l, db.PrimaryDB),
-		TrainRepository: train.NewRepository(db.PrimaryDB, l),
+		AuthRepository:          auth.NewRepository(l, db.PrimaryDB),
+		TrainRepository:         train.NewRepository(db.PrimaryDB, l),
+		ExercisesRepository:     exercises.NewRepository(l, db.PrimaryDB),
+		TrainCategoryRepository: traincategory.NewRepository(db.PrimaryDB, l),
 	}
 }

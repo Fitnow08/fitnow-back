@@ -42,11 +42,17 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*domain.Us
 		log.Error("failed to create user", "error", err)
 		return nil, err
 	}
-
+	access, refresh, err := GenerateJwtTokens(userdb.ID, "user")
+	if err != nil {
+		log.Error("failed to generate access token", "error", err)
+		return nil, err
+	}
 	return &domain.User{
-		ID:    userdb.ID,
-		Email: userdb.Email,
-		Title: userdb.Title,
+		ID:           userdb.ID,
+		Email:        userdb.Email,
+		Title:        userdb.Title,
+		AccessToken:  access,
+		RefreshToken: refresh,
 	}, nil
 }
 
@@ -62,9 +68,16 @@ func (s *Service) Login(ctx context.Context, email, password string) (*domain.Us
 	if !VerifyPassword(user.Password, password) {
 		return nil, fmt.Errorf("invalid password")
 	}
+	access, refresh, err := GenerateJwtTokens(user.ID, "user")
+	if err != nil {
+		log.Error("failed to generate access token", "error", err)
+		return nil, err
+	}
 	return &domain.User{
-		ID:    user.ID,
-		Email: user.Email,
-		Title: user.Title,
+		ID:           user.ID,
+		Email:        user.Email,
+		Title:        user.Title,
+		AccessToken:  access,
+		RefreshToken: refresh,
 	}, nil
 }

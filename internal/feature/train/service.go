@@ -8,7 +8,7 @@ import (
 )
 
 type TrainRepository interface {
-	GetAllPublicTrains(ctx context.Context) ([]*TrainDB, error)
+	GetAllPublicTrains(ctx context.Context, param AllTrainsParams) ([]*TrainDB, error)
 	GetTrainByID(ctx context.Context, id uuid.UUID) (*TrainDB, error)
 	CreateTrain(ctx context.Context, req CreateTrainRequest, userID uuid.UUID) (*TrainDB, error)
 	UpdateTrain(ctx context.Context, id uuid.UUID, req UpdateTrainRequest, userID uuid.UUID) (*TrainDB, error)
@@ -16,8 +16,6 @@ type TrainRepository interface {
 	GetUserTrains(ctx context.Context, userID uuid.UUID) ([]*TrainDB, error)
 	AddUserTrain(ctx context.Context, userID, trainID uuid.UUID) error
 	RemoveUserTrain(ctx context.Context, userID, trainID uuid.UUID) error
-	GetAllExercises(ctx context.Context) ([]*ExerciseDB, error)
-	CreateExercise(ctx context.Context, req CreateExerciseRequest) (*ExerciseDB, error)
 }
 
 type Service struct {
@@ -29,8 +27,8 @@ func NewService(log *slog.Logger, trainRepository TrainRepository) *Service {
 	return &Service{log: log, trainRepository: trainRepository}
 }
 
-func (s *Service) GetAllPublicTrains(ctx context.Context) ([]*domain.Train, error) {
-	rows, err := s.trainRepository.GetAllPublicTrains(ctx)
+func (s *Service) GetAllPublicTrains(ctx context.Context, param AllTrainsParams) ([]*domain.Train, error) {
+	rows, err := s.trainRepository.GetAllPublicTrains(ctx, param)
 	if err != nil {
 		return nil, err
 	}
@@ -87,34 +85,6 @@ func (s *Service) AddUserTrain(ctx context.Context, userID, trainID uuid.UUID) e
 
 func (s *Service) RemoveUserTrain(ctx context.Context, userID, trainID uuid.UUID) error {
 	return s.trainRepository.RemoveUserTrain(ctx, userID, trainID)
-}
-
-func (s *Service) GetAllExercises(ctx context.Context) ([]*domain.Exercise, error) {
-	rows, err := s.trainRepository.GetAllExercises(ctx)
-	if err != nil {
-		return nil, err
-	}
-	exercises := make([]*domain.Exercise, 0, len(rows))
-	for _, e := range rows {
-		exercises = append(exercises, &domain.Exercise{
-			ID:          e.ID,
-			Title:       e.Title,
-			Description: e.Description,
-		})
-	}
-	return exercises, nil
-}
-
-func (s *Service) CreateExercise(ctx context.Context, req CreateExerciseRequest) (*domain.Exercise, error) {
-	e, err := s.trainRepository.CreateExercise(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	return &domain.Exercise{
-		ID:          e.ID,
-		Title:       e.Title,
-		Description: e.Description,
-	}, nil
 }
 
 func dbToDomain(t *TrainDB) *domain.Train {

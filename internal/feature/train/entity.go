@@ -24,6 +24,10 @@ type CreateExerciseRequest struct {
 	Title       string `json:"title" validate:"required"`
 	Description string `json:"description"`
 }
+type AllTrainsParams struct {
+	Page  uint64 `json:"page"`
+	Limit uint64 `json:"size"`
+}
 
 func NewValidator() *validator.Validate {
 	return validator.New()

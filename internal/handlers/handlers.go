@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"net/http"
 	"os"
 )
@@ -32,16 +33,32 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 		})
 		r.Route("/train", func(r chi.Router) {
 			r.Get("/", handlers.TrainHandler.GetAllTrains)
+			r.Get("/exercises", handlers.ExercisesHandler.GetAllExercises)
+			r.Get("/{id}", handlers.TrainHandler.GetTrainByID)
 
-			r.Route("/", func(r chi.Router) {
+			r.Group(func(r chi.Router) {
 				r.Use(customMiddleware.AuthMiddleware(""))
 				r.Post("/", handlers.TrainHandler.CreateTrain)
-				r.Put("/", handlers.TrainHandler.UpdateTrain)
-				r.Delete("/", handlers.TrainHandler.DeleteTrain)
-			})
+				r.Post("/exercises", handlers.ExercisesHandler.CreateExercise)
+				r.Get("/me", handlers.TrainHandler.GetUserTrains)
 
+				r.Put("/{id}", handlers.TrainHandler.UpdateTrain)
+				r.Delete("/{id}", handlers.TrainHandler.DeleteTrain)
+				r.Post("/{id}/add", handlers.TrainHandler.AddUserTrain)
+				r.Delete("/{id}/remove", handlers.TrainHandler.RemoveUserTrain)
+			})
+			r.Route("/category", func(r chi.Router) {
+				r.Get("/", handlers.TrainCategoryHandler.GetAllTrainCategory)
+				r.Post("/", handlers.TrainCategoryHandler.CreateTrainCategory)
+				r.Put("/{id}", handlers.TrainCategoryHandler.UpdateTrainCategory)
+				r.Delete("/{id}", handlers.TrainCategoryHandler.DeleteTrainCategory)
+			})
 		})
+
 	})
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
 	return r
 }
 

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	_ "github.com/Sanchir01/fitnow/docs"
 	"github.com/Sanchir01/fitnow/internal/app"
 	"github.com/Sanchir01/fitnow/internal/handlers"
 	"os"
@@ -10,6 +11,20 @@ import (
 	"syscall"
 )
 
+// @title 🚀 FITNOW
+// @version         0.0.1
+// @description This is a gateway server
+// @termsOfService  http://swagger.io/terms/
+
+// @host localhost:7111
+// @BasePath /api/v1
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Enter your JWT token (you can use it with or without "Bearer " prefix). Example: "eyJhbGc..." or "Bearer eyJhbGc..."
+
+// @contact.url https://github.com/Sanchir01
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, os.Interrupt)
 	defer cancel()

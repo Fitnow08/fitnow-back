@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	constants "github.com/Sanchir01/fitnow/internal/models/contants"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"log/slog"
@@ -36,6 +37,38 @@ func GenerateJwtToken(id uuid.UUID, role string, expire time.Time) (string, erro
 	return tokenString, nil
 }
 
+func GenerateJwtTokens(id uuid.UUID, role string) (string, string, error) {
+	secretKey := []byte(os.Getenv("JWT_SECRET"))
+
+	accessClaims := &Claims{
+		ID: id,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)),
+		},
+	}
+
+	accessToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims).
+		SignedString(secretKey)
+	if err != nil {
+		return "", "", err
+	}
+
+	// Refresh token (длинный)
+	refreshClaims := &Claims{
+		ID: id,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
+		},
+	}
+
+	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims).
+		SignedString(secretKey)
+	if err != nil {
+		return "", "", err
+	}
+
+	return accessToken, refreshToken, nil
+}
 func AddCookieTokens(id uuid.UUID, Role string, w http.ResponseWriter, domain string) error {
 	expirationTimeAccess := time.Now().Add(4 * time.Hour)
 	expirationTimeRefresh := time.Now().Add(14 * 24 * time.Hour)
@@ -77,8 +110,7 @@ func ParseToken(tokenString string) (*Claims, error) {
 		slog.Error("Token claims type assertion failed")
 		return nil, errors.New("invalid token claims")
 	}
-
-	slog.Info("JWT token successfully parsed", "claims", claims)
+	
 	return claims, nil
 }
 
@@ -122,4 +154,12 @@ func GenerateCookie(name string, expire time.Time, httpOnly bool, value string, 
 
 func DeleteCookie(w http.ResponseWriter) {
 	http.SetCookie(w, GenerateCookie("refreshToken", time.Unix(0, 0), true, "", ""))
+}
+
+func GetUserByHttpContext(r *http.Request) (*constants.UserClaims, error) {
+	claims, ok := r.Context().Value(constants.UserClaimsKey).(*constants.UserClaims)
+	if !ok || claims == nil {
+		return nil, errors.New("user claims not found")
+	}
+	return claims, nil
 }
