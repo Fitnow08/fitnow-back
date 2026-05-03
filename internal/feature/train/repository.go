@@ -3,29 +3,15 @@ package train
 import (
 	"context"
 	sq "github.com/Masterminds/squirrel"
+	constants "github.com/Sanchir01/fitnow/internal/models/contants"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
-	"time"
 )
 
 type Repository struct {
 	db  *pgxpool.Pool
 	log *slog.Logger
-}
-
-type TrainDB struct {
-	ID         uuid.UUID `db:"id"`
-	Title      string    `db:"title"`
-	Type       string    `db:"type"`
-	Duration   int64     `db:"duration"`
-	IsPublic   bool      `db:"is_public"`
-	Difficulty string    `db:"difficulty"`
-	CreatedBy  uuid.UUID `db:"created_by"`
-	CreatedAt  time.Time `db:"created_at"`
-	Calories   int64     `db:"calories"`
-	UpdatedAt  time.Time `db:"updated_at"`
-	Version    int64     `db:"version"`
 }
 
 type ExerciseDB struct {
@@ -246,4 +232,21 @@ func (r *Repository) CreateExercise(ctx context.Context, req CreateExerciseReque
 		return nil, err
 	}
 	return &e, nil
+}
+
+func (r *Repository) UpdateTrainImageUrl(ctx context.Context, trainID uuid.UUID, url string) error {
+	query, args, err := sq.
+		Update(constants.TrainTableName).
+		Where(sq.Eq{"id": trainID}).
+		Set("image_path", url).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return err
+	}
+	_, err = r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+	return nil
 }

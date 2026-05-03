@@ -15,10 +15,10 @@ type Services struct {
 	TrainCategoryService *traincategory.Service
 }
 
-func NewServices(repo *Repositories, l *slog.Logger) *Services {
+func NewServices(repo *Repositories, s3minio *S3, l *slog.Logger) *Services {
 	return &Services{
 		AuthService:          auth.NewService(l, repo.AuthRepository),
-		TrainService:         train.NewService(l, repo.TrainRepository),
+		TrainService:         train.NewService(l, s3minio.TrainBucket, repo.TrainRepository),
 		ExercisesService:     exercises.NewService(l, repo.ExercisesRepository),
 		TrainCategoryService: traincategory.NewService(l, repo.TrainCategoryRepository),
 	}

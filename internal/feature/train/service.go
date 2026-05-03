@@ -2,8 +2,11 @@ package train
 
 import (
 	"context"
+	"fmt"
 	"github.com/Sanchir01/fitnow/internal/models/domain"
+	"github.com/Sanchir01/fitnow/pkg/db/connect"
 	"github.com/google/uuid"
+	"io"
 	"log/slog"
 )
 
@@ -16,15 +19,18 @@ type TrainRepository interface {
 	GetUserTrains(ctx context.Context, userID uuid.UUID) ([]*TrainDB, error)
 	AddUserTrain(ctx context.Context, userID, trainID uuid.UUID) error
 	RemoveUserTrain(ctx context.Context, userID, trainID uuid.UUID) error
+	UpdateTrainImageUrl(ctx context.Context, trainID uuid.UUID, url string) error
 }
 
 type Service struct {
 	log             *slog.Logger
 	trainRepository TrainRepository
+	s3              connect.MiniS3Interface
 }
 
-func NewService(log *slog.Logger, trainRepository TrainRepository) *Service {
-	return &Service{log: log, trainRepository: trainRepository}
+func NewService(log *slog.Logger, s3 connect.MiniS3Interface, trainRepository TrainRepository) *Service {
+
+	return &Service{log: log, trainRepository: trainRepository, s3: s3}
 }
 
 func (s *Service) GetAllPublicTrains(ctx context.Context, param AllTrainsParams) ([]*domain.Train, error) {
@@ -87,6 +93,17 @@ func (s *Service) RemoveUserTrain(ctx context.Context, userID, trainID uuid.UUID
 	return s.trainRepository.RemoveUserTrain(ctx, userID, trainID)
 }
 
+func (s *Service) UploadTrainImage(ctx context.Context, trainID uuid.UUID, ext, contentType string, size int64, r io.Reader) error {
+	key := fmt.Sprintf("trains/%s%s", trainID, ext) // например trains/<uuid>.webp
+	if err := s.s3.Upload(ctx, key, r, size, contentType); err != nil {
+		return err
+	}
+	if err := s.trainRepository.UpdateTrainImageUrl(ctx, trainID, key); err != nil {
+		return err
+	}
+	return nil
+}
+
 func dbToDomain(t *TrainDB) *domain.Train {
 	return &domain.Train{
 		ID:         t.ID,
@@ -95,6 +112,7 @@ func dbToDomain(t *TrainDB) *domain.Train {
 		Duration:   t.Duration,
 		IsPublic:   t.IsPublic,
 		Difficulty: t.Difficulty,
+		CategoryId: t.CategoryId,
 		Calories:   t.Calories,
 		CreatedBy:  t.CreatedBy,
 		CreatedAt:  t.CreatedAt,

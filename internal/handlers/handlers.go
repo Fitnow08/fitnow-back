@@ -39,6 +39,7 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 			r.Group(func(r chi.Router) {
 				r.Use(customMiddleware.AuthMiddleware(""))
 				r.Post("/", handlers.TrainHandler.CreateTrain)
+				r.Post("/{id}/image", handlers.TrainHandler.UploadTrainImage)
 				r.Post("/exercises", handlers.ExercisesHandler.CreateExercise)
 				r.Get("/me", handlers.TrainHandler.GetUserTrains)
 

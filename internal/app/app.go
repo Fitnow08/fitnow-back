@@ -26,8 +26,13 @@ func NewApp(ctx context.Context) (*App, error) {
 		l.Info("databases", "err", err.Error())
 		return nil, err
 	}
+	s3minio, err := NewS3(ctx, databases.Minio, cfg)
+	if err != nil {
+		l.Info("s3minio", "err", err.Error())
+		return nil, err
+	}
 	repo := NewRepository(databases, l)
-	services := NewServices(repo, l)
+	services := NewServices(repo, s3minio, l)
 	handler := NewHandlers(l, services)
 	httpsrv := httpserver.NewHTTPServer(cfg.HttpServer.Host, cfg.HttpServer.Port, cfg.HttpServer.Timeout,
 		cfg.HttpServer.IdleTimeout,

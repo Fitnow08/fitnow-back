@@ -1,7 +1,25 @@
 package train
 
-import "github.com/go-playground/validator/v10"
+import (
+	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
+	"time"
+)
 
+type TrainDB struct {
+	ID         uuid.UUID `db:"id"`
+	Title      string    `db:"title"`
+	Type       string    `db:"type"`
+	Duration   int64     `db:"duration"`
+	IsPublic   bool      `db:"is_public"`
+	Difficulty string    `db:"difficulty"`
+	CreatedBy  uuid.UUID `db:"created_by"`
+	CreatedAt  time.Time `db:"created_at"`
+	CategoryId uuid.UUID `db:"category_id"`
+	Calories   int64     `db:"calories"`
+	UpdatedAt  time.Time `db:"updated_at"`
+	Version    int64     `db:"version"`
+}
 type CreateTrainRequest struct {
 	Title      string `json:"title" validate:"required"`
 	Type       string `json:"type" validate:"required,oneof=strength cardio stretching"`

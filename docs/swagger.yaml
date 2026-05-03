@@ -1,5 +1,30 @@
 basePath: /api/v1
 definitions:
+  auth.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  auth.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
   domain.ErrorResponse:
     properties:
       description:
@@ -7,7 +32,30 @@ definitions:
       key:
         type: string
     type: object
+  domain.User:
+    properties:
+      access_token:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      refresh_token:
+        type: string
+      title:
+        type: string
+    type: object
+  traincategory.CreateTrainCategoryRequest:
+    properties:
+      title:
+        type: string
+    required:
+    - title
+    type: object
   traincategory.CreateTrainCategoryResponse:
+    properties:
+      category:
+        $ref: '#/definitions/traincategory.TrainCategoryDB'
     type: object
   traincategory.TrainCategoryDB:
     properties:
@@ -22,6 +70,13 @@ definitions:
       version:
         type: integer
     type: object
+  traincategory.UpdateTrainCategoryRequest:
+    properties:
+      title:
+        type: string
+    required:
+    - title
+    type: object
 host: localhost:7111
 info:
   contact:
@@ -31,6 +86,78 @@ info:
   title: "\U0001F680 FITNOW"
   version: 0.0.1
 paths:
+  /auth/login:
+    post:
+      description: Login user by email
+      parameters:
+      - description: Login body json
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User by email
+          schema:
+            $ref: '#/definitions/domain.User'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: Login
+      tags:
+      - auth
+  /auth/register:
+    post:
+      description: Register user by email
+      parameters:
+      - description: Register user and return
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Registered user
+          schema:
+            $ref: '#/definitions/domain.User'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: Register
+      tags:
+      - auth
   /train/category:
     get:
       description: Get all train category
@@ -64,10 +191,17 @@ paths:
       - train-category
     post:
       description: Create category train
+      parameters:
+      - description: Create body json
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/traincategory.CreateTrainCategoryRequest'
       produces:
       - application/json
       responses:
-        "200":
+        "201":
           description: create category response
           schema:
             $ref: '#/definitions/traincategory.CreateTrainCategoryResponse'
@@ -121,6 +255,13 @@ paths:
       - train-category
     put:
       description: Update category train by id
+      parameters:
+      - description: Update body json
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/traincategory.UpdateTrainCategoryRequest'
       produces:
       - application/json
       responses:

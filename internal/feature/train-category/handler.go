@@ -59,7 +59,8 @@ func (h *Handler) GetAllTrainCategory(w http.ResponseWriter, r *http.Request) {
 // @Tags train-category
 // @Description Create category train
 // @Produce json
-// @Success 200 {object} traincategory.CreateTrainCategoryResponse "create category response
+// @Param input body CreateTrainCategoryRequest true "Create body json"
+// @Success 201 {object} traincategory.CreateTrainCategoryResponse "create category response
 // @Failure 400 {object} domain.ErrorResponse "Bad request"
 // @Failure 401 {object} domain.ErrorResponse "Unauthorized"
 // @Failure 404 {object} domain.ErrorResponse "Not found"
@@ -98,6 +99,7 @@ func (h *Handler) CreateTrainCategory(w http.ResponseWriter, r *http.Request) {
 // @Tags train-category
 // @Description Update category train by id
 // @Produce json
+// @Param input body UpdateTrainCategoryRequest true "Update body json"
 // @Success 200 {object} traincategory.CreateTrainCategoryResponse "create category response
 // @Failure 400 {object} domain.ErrorResponse "Bad request"
 // @Failure 401 {object} domain.ErrorResponse "Unauthorized"
@@ -121,7 +123,7 @@ func (h *Handler) UpdateTrainCategory(w http.ResponseWriter, r *http.Request) {
 		render.JSON(w, r, "failed train category id in path")
 		return
 	}
-	var req CreateTrainCategoryRequest
+	var req UpdateTrainCategoryRequest
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
 		log.Error("failed to decode body")
 		render.Status(r, http.StatusBadRequest)

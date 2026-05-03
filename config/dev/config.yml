@@ -9,6 +9,11 @@ database:
   max_attempts: 5
   ssl: disable
 
+minio_s3:
+  url: localhost:9000
+  access_key: minioadmin
+  secret_key: minioadmin
+  ssl: false
 
 http_server:
   host: 0.0.0.0

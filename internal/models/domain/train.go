@@ -13,6 +13,7 @@ type Train struct {
 	IsPublic   bool      `json:"is_public"`
 	Difficulty string    `json:"difficulty"`
 	Calories   int64     `json:"calories"`
+	CategoryId uuid.UUID `json:"category_id"`
 	CreatedBy  uuid.UUID `json:"created_by"`
 	CreatedAt  time.Time `json:"created_at"`
 }

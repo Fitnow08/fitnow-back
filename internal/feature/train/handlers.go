@@ -11,8 +11,10 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"io"
 	"log/slog"
 	"net/http"
+	"path/filepath"
 	"strconv"
 )
 
@@ -25,6 +27,7 @@ type TrainService interface {
 	GetUserTrains(ctx context.Context, userID uuid.UUID) ([]*domain.Train, error)
 	AddUserTrain(ctx context.Context, userID, trainID uuid.UUID) error
 	RemoveUserTrain(ctx context.Context, userID, trainID uuid.UUID) error
+	UploadTrainImage(ctx context.Context, trainID uuid.UUID, ext, contentType string, size int64, r io.Reader) error
 }
 
 type Handler struct {
@@ -281,4 +284,38 @@ func (h *Handler) RemoveUserTrain(w http.ResponseWriter, r *http.Request) {
 	}
 	render.Status(r, http.StatusNoContent)
 	render.NoContent(w, r)
+}
+
+func (h *Handler) UploadTrainImage(w http.ResponseWriter, r *http.Request) {
+	const op = "Train.Handler.UploadTrainImage"
+	log := h.log.With("op", op)
+	idStr := chi.URLParam(r, "id")
+	trainID, err := uuid.Parse(idStr)
+	if err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid id"))
+		return
+	}
+	if err := r.ParseMultipartForm(10 << 20); err != nil { // 10 MB
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid multipart form"))
+		return
+	}
+	file, header, err := r.FormFile("image")
+	if err != nil {
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("image field required"))
+		return
+	}
+	defer file.Close()
+	ext := filepath.Ext(header.Filename)
+	contentType := header.Header.Get("Content-Type")
+	if err := h.trainservice.UploadTrainImage(r.Context(), trainID, ext, contentType, header.Size, file); err != nil {
+		log.Error("failed to upload train", slog.Any("err", err))
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, api.Error("failed to upload train"))
+		return
+	}
+	render.Status(r, http.StatusCreated)
+	render.JSON(w, r, "ok")
 }

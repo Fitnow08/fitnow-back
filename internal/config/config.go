@@ -14,6 +14,7 @@ type Config struct {
 	Env        string     `yaml:"env"`
 	HttpServer HttpServer `yaml:"http_server"`
 	DB         PrimaryDB  `yaml:"database"`
+	MINIOS3    Minio      `yaml:"minio_s3"`
 }
 type HttpServer struct {
 	Timeout     time.Duration `yaml:"timeout"  env-default:"4s"`
@@ -21,6 +22,12 @@ type HttpServer struct {
 	Port        string        `yaml:"port"  env-default:"5000"`
 	Debug       bool          `yaml:"debug"  env-default:"true"`
 	IdleTimeout time.Duration `yaml:"idle_timeout"  env-default:"60s"`
+}
+type Minio struct {
+	URL        string `yaml:"url"`
+	ACCESS_KEY string `yaml:"access_key"`
+	SECRET_KEY string `yaml:"secret_key"`
+	SSL        bool   `yaml:"ssl"`
 }
 type PrimaryDB struct {
 	Host        string `yaml:"host"`

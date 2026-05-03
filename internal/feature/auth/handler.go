@@ -29,6 +29,17 @@ func NewHandler(log *slog.Logger, autgservice AuthService) *Handler {
 	}
 }
 
+// @Summary Login
+// @Tags auth
+// @Description Login user by email
+// @Produce json
+// @Param input body LoginRequest true "Login body json"
+// @Success 200 {object} domain.User "User by email"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Router /auth/login [post]
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	const op = "Auth.Handler.Login"
 	log := h.log.With(slog.String("op", op))
@@ -57,6 +68,17 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, user)
 }
 
+// @Summary Register
+// @Tags auth
+// @Description Register user by email
+// @Produce json
+// @Param input body RegisterRequest true "Register user and return"
+// @Success 200 {object} domain.User "Registered user"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Router /auth/register [post]
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	const op = "Auth.Handler.Register"
 	log := h.log.With(slog.String("op", op))
