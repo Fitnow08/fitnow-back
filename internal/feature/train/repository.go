@@ -237,8 +237,8 @@ func (r *Repository) CreateExercise(ctx context.Context, req CreateExerciseReque
 func (r *Repository) UpdateTrainImageUrl(ctx context.Context, trainID uuid.UUID, url string) error {
 	query, args, err := sq.
 		Update(constants.TrainTableName).
-		Where(sq.Eq{"id": trainID}).
 		Set("image_path", url).
+		Where(sq.Eq{"id": trainID}).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {

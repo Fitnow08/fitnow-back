@@ -2,12 +2,14 @@ package httpserver
 
 import (
 	"context"
+	"github.com/gorilla/websocket"
 	"net/http"
 	"time"
 )
 
 type Server struct {
 	httpServer *http.Server
+	wsUpd      *websocket.Upgrader
 }
 
 func NewHTTPServer(host, port string, timeout, idletimeout time.Duration) *Server {
@@ -18,9 +20,14 @@ func NewHTTPServer(host, port string, timeout, idletimeout time.Duration) *Serve
 		WriteTimeout:   timeout,
 		IdleTimeout:    idletimeout,
 	}
+	ws := websocket.Upgrader{EnableCompression: true}
 	return &Server{
 		httpServer: srv,
+		wsUpd:      &ws,
 	}
+}
+func (s *Server) Upgrader() *websocket.Upgrader {
+	return s.wsUpd
 }
 
 func (s *Server) Run(handler http.Handler) error {

@@ -31,12 +31,12 @@ func NewApp(ctx context.Context) (*App, error) {
 		l.Info("s3minio", "err", err.Error())
 		return nil, err
 	}
-	repo := NewRepository(databases, l)
-	services := NewServices(repo, s3minio, l)
-	handler := NewHandlers(l, services)
 	httpsrv := httpserver.NewHTTPServer(cfg.HttpServer.Host, cfg.HttpServer.Port, cfg.HttpServer.Timeout,
 		cfg.HttpServer.IdleTimeout,
 	)
+	repo := NewRepository(databases, l)
+	services := NewServices(repo, s3minio, l)
+	handler := NewHandlers(l, services, httpsrv.Upgrader())
 
 	return &App{
 		Handlers:     handler,

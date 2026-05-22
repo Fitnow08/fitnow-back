@@ -24,6 +24,7 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 			middleware.RequestID,
 			customMiddleware.RecoverMiddleware,
 		)
+		r.Get("/ws", handlers.ChatHandler.WsHandler)
 		r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("ok"))
 		})
