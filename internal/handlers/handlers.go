@@ -39,8 +39,15 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 
 			r.Group(func(r chi.Router) {
 				r.Use(customMiddleware.AuthMiddleware(""))
+				r.Route("/{id}", func(r chi.Router) {
+					r.Post("/image", handlers.TrainHandler.UploadTrainImage)
+					r.Route("/comments", func(r chi.Router) {
+						r.Get("/", handlers.CommentHandler.GetTrainComments)
+						r.Post("/", handlers.CommentHandler.CreateTrainComment)
+					})
+				})
 				r.Post("/", handlers.TrainHandler.CreateTrain)
-				r.Post("/{id}/image", handlers.TrainHandler.UploadTrainImage)
+
 				r.Post("/exercises", handlers.ExercisesHandler.CreateExercise)
 				r.Get("/me", handlers.TrainHandler.GetUserTrains)
 
@@ -48,6 +55,10 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 				r.Delete("/{id}", handlers.TrainHandler.DeleteTrain)
 				r.Post("/{id}/add", handlers.TrainHandler.AddUserTrain)
 				r.Delete("/{id}/remove", handlers.TrainHandler.RemoveUserTrain)
+			})
+			r.Route("/comments", func(r chi.Router) {
+				r.Delete("/{id}", handlers.CommentHandler.DeleteComment)
+				r.Put("/{id}", handlers.CommentHandler.UpdateComment)
 			})
 			r.Route("/category", func(r chi.Router) {
 				r.Get("/", handlers.TrainCategoryHandler.GetAllTrainCategory)

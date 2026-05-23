@@ -152,7 +152,7 @@ func (r *Repository) GetUserTrains(ctx context.Context, userID uuid.UUID) ([]*Tr
 	}
 	defer rows.Close()
 
-	var trains []*TrainDB
+	trains := make([]*TrainDB, 0)
 	for rows.Next() {
 		var t TrainDB
 		if err := rows.Scan(&t.ID, &t.Title, &t.Type, &t.Duration, &t.IsPublic, &t.Difficulty, &t.Calories, &t.CreatedBy, &t.CreatedAt); err != nil {
@@ -205,7 +205,7 @@ func (r *Repository) GetAllExercises(ctx context.Context) ([]*ExerciseDB, error)
 	}
 	defer rows.Close()
 
-	var exercises []*ExerciseDB
+	exercises := make([]*ExerciseDB, 0)
 	for rows.Next() {
 		var e ExerciseDB
 		if err := rows.Scan(&e.ID, &e.Title, &e.Description); err != nil {

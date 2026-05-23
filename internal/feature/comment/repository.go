@@ -19,24 +19,24 @@ func NewRepository(log *slog.Logger, db *pgxpool.Pool) *Repository {
 	return &Repository{log: log, db: db}
 }
 
-func (r *Repository) CreateComment(ctx context.Context, comment string, train_id uuid.UUID, user_id uuid.UUID) error {
+func (r *Repository) CreateComment(ctx context.Context, comment string, train_id, user_id uuid.UUID, parentid *uuid.UUID) error {
 	query, args, err := sq.
 		Insert(constants.CommentsTableName).
 		Columns("train_id", "user_id", "parent_id", "content").
-		Values(comment, train_id, user_id, comment).
+		Values(train_id, user_id, parentid, comment).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return err
 	}
 	_, err = r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func (r *Repository) GetTrainComments(
-	ctx context.Context,
-	trainID uuid.UUID,
-) ([]CommentDB, error) {
+func (r *Repository) GetTrainComments(ctx context.Context, trainID uuid.UUID) ([]CommentDB, error) {
 	query, args, err := sq.
 		Select(
 			"id",
@@ -55,6 +55,7 @@ func (r *Repository) GetTrainComments(
 			"train_id": trainID,
 		}).
 		OrderBy("created_at ASC").
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -66,7 +67,7 @@ func (r *Repository) GetTrainComments(
 	}
 	defer rows.Close()
 
-	var comments []CommentDB
+	comments := make([]CommentDB, 0)
 
 	for rows.Next() {
 		var row CommentDB
@@ -96,10 +97,10 @@ func (r *Repository) GetTrainComments(
 	return comments, nil
 }
 
-func (r *Repository) UpdateComment(ctx context.Context, comment string, train_id uuid.UUID, user_id uuid.UUID) error {
+func (r *Repository) UpdateComment(ctx context.Context, comment string, commentID uuid.UUID) error {
 	query, args, err := sq.Update(constants.CommentsTableName).
 		Set("content", comment).
-		Where(sq.Eq{"train_id": train_id, "user_id": user_id}).
+		Where(sq.Eq{"id": commentID}).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
@@ -112,11 +113,11 @@ func (r *Repository) UpdateComment(ctx context.Context, comment string, train_id
 	return nil
 }
 
-func (r *Repository) DeleteComment(ctx context.Context, train_id uuid.UUID, user_id uuid.UUID) error {
+func (r *Repository) DeleteComment(ctx context.Context, commentID uuid.UUID) error {
 	queery, args, err := sq.Update(constants.CommentsTableName).
 		Set("is_deleted", true).
 		Set("deleted_at", time.Now()).
-		Where(sq.Eq{"train_id": train_id, "user_id": user_id}).
+		Where(sq.Eq{"id": commentID}).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {

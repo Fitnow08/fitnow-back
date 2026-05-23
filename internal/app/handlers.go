@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/Sanchir01/fitnow/internal/feature/auth"
 	"github.com/Sanchir01/fitnow/internal/feature/chat"
+	"github.com/Sanchir01/fitnow/internal/feature/comment"
 	"github.com/Sanchir01/fitnow/internal/feature/exercises"
 	"github.com/Sanchir01/fitnow/internal/feature/train"
 	traincategory "github.com/Sanchir01/fitnow/internal/feature/train-category"
@@ -15,6 +16,7 @@ type Handlers struct {
 	TrainHandler         *train.Handler
 	ExercisesHandler     *exercises.Handler
 	TrainCategoryHandler *traincategory.Handler
+	CommentHandler       *comment.Handler
 	ChatHandler          *chat.Handler
 }
 
@@ -24,6 +26,7 @@ func NewHandlers(l *slog.Logger, srv *Services, wsUpd *websocket.Upgrader) *Hand
 		TrainHandler:         train.NewHandler(l, srv.TrainService),
 		ExercisesHandler:     exercises.NewHandler(l, srv.ExercisesService),
 		TrainCategoryHandler: traincategory.NewHandler(l, srv.TrainCategoryService),
+		CommentHandler:       comment.NewHandler(l, srv.CommentService),
 		ChatHandler:          chat.NewHandler(l, wsUpd),
 	}
 }

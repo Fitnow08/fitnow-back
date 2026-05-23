@@ -6,6 +6,7 @@ import (
 	"fmt"
 	grpclog "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"log/slog"
+	"maps"
 	"net"
 	"os"
 	"sync"
@@ -184,9 +185,7 @@ func (h *GraylogHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	defer h.mu.Unlock()
 
 	newExtra := make(map[string]any, len(h.extra)+len(attrs))
-	for k, v := range h.extra {
-		newExtra[k] = v
-	}
+	maps.Copy(newExtra, h.extra)
 	for _, a := range attrs {
 		newExtra[a.Key] = a.Value.Any()
 	}

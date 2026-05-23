@@ -87,7 +87,7 @@ func AddCookieTokens(id uuid.UUID, Role string, w http.ResponseWriter, domain st
 }
 
 func ParseToken(tokenString string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			slog.Error("Unexpected signing method", "method", token.Header["alg"])
 			return nil, errors.New("unexpected signing method")
@@ -110,7 +110,7 @@ func ParseToken(tokenString string) (*Claims, error) {
 		slog.Error("Token claims type assertion failed")
 		return nil, errors.New("invalid token claims")
 	}
-	
+
 	return claims, nil
 }
 
