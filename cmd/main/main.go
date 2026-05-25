@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 // @title 🚀 FITNOW
@@ -43,7 +44,10 @@ func main() {
 
 	apps.Log.Info("Starting application...")
 	<-ctx.Done()
-	if err := apps.HTTPServer.Gracefull(ctx); err != nil {
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+	if err := apps.HTTPServer.Gracefull(shutdownCtx); err != nil {
 		fmt.Println(err)
 	}
 	apps.Log.Info("Shutting down application...")

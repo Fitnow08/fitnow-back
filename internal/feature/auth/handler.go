@@ -13,6 +13,7 @@ import (
 type AuthService interface {
 	Register(ctx context.Context, req RegisterRequest) (*domain.User, error)
 	Login(ctx context.Context, email, password string) (*domain.User, error)
+	GenerateNewTokens(ctx context.Context, token string) (*Tokens, error)
 }
 type Handler struct {
 	log         *slog.Logger
@@ -46,7 +47,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	var req LoginRequest
 	if err := render.DecodeJSON(r.Body, &req); err != nil {
-		log.Error("failed to decode body register")
+		log.Error("failed to decode body login")
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, "invalid request body")
 		return
@@ -106,4 +107,31 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 	render.Status(r, http.StatusCreated)
 	render.JSON(w, r, user)
+}
+
+func (h *Handler) NewTokens(w http.ResponseWriter, r *http.Request) {
+	const op = "Auth.Handler.NewTokens"
+	log := h.log.With(slog.String("op", op))
+	var req GetNewTokensRequest
+	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		log.Error("failed to decode body new tokens")
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, "invalid request body")
+		return
+	}
+	if err := h.validator.Struct(req); err != nil {
+		log.Error("invalid request", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid request body"))
+		return
+	}
+	tokens, err := h.autgservice.GenerateNewTokens(r.Context(), req.Token)
+	if err != nil {
+		log.Error("failed to generate new tokens", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, "failed generate new tokens")
+		return
+	}
+	render.Status(r, http.StatusCreated)
+	render.JSON(w, r, tokens)
 }

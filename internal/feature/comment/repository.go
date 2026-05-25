@@ -96,7 +96,46 @@ func (r *Repository) GetTrainComments(ctx context.Context, trainID uuid.UUID) ([
 
 	return comments, nil
 }
+func (r *Repository) GetCommentById(ctx context.Context, id uuid.UUID) (*CommentDB, error) {
+	query, args, err := sq.
+		Select(
+			"id",
+			"train_id",
+			"user_id",
+			"parent_id",
+			"content",
+			"created_at",
+			"updated_at",
+			"is_deleted",
+			"deleted_at",
+			"version",
+		).
+		From(constants.CommentsTableName).
+		Where(sq.Eq{
+			"id": id,
+		}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
 
+	var comment CommentDB
+	if err := r.db.QueryRow(ctx, query, args...).Scan(&comment.ID,
+		&comment.TrainID,
+		&comment.UserId,
+		&comment.ParentID,
+		&comment.Comment,
+		&comment.CreatedAt,
+		&comment.UpdatedAt,
+		&comment.IsDeleted,
+		&comment.DeletedAt,
+		&comment.Version,
+	); err != nil {
+		return nil, err
+	}
+	return &comment, nil
+}
 func (r *Repository) UpdateComment(ctx context.Context, comment string, commentID uuid.UUID) error {
 	query, args, err := sq.Update(constants.CommentsTableName).
 		Set("content", comment).

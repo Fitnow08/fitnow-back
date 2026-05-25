@@ -2,6 +2,7 @@ package rating
 
 import (
 	"context"
+	"errors"
 	sq "github.com/Masterminds/squirrel"
 	constants "github.com/Sanchir01/fitnow/internal/models/contants"
 	"github.com/google/uuid"
@@ -54,14 +55,21 @@ func (r *Repository) CreateTrainRating(ctx context.Context, userid, trainid uuid
 	query, args, err := sq.Insert(constants.RatingTableName).
 		Columns("user_id", "train_id", "rating").
 		Values(userid, trainid, rating).
+		Suffix("ON CONFLICT (user_id, train_id) DO NOTHING").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return err
 	}
-	if _, err = r.db.Exec(ctx, query, args...); err != nil {
+	tag, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
 		return err
 	}
+
+	if tag.RowsAffected() == 0 {
+		return errors.New("rating already exists")
+	}
+
 	return nil
 }
 

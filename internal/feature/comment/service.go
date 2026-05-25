@@ -3,6 +3,7 @@ package comment
 import (
 	"context"
 	"github.com/Sanchir01/fitnow/internal/models/domain"
+	"github.com/Sanchir01/fitnow/pkg/utils"
 	"github.com/google/uuid"
 	"log/slog"
 )
@@ -12,6 +13,7 @@ type RepositoryInterface interface {
 	UpdateComment(ctx context.Context, comment string, commentID uuid.UUID) error
 	GetTrainComments(ctx context.Context, trainID uuid.UUID) ([]CommentDB, error)
 	CreateComment(ctx context.Context, comment string, train_id, user_id uuid.UUID, parentid *uuid.UUID) error
+	GetCommentById(ctx context.Context, id uuid.UUID) (*CommentDB, error)
 }
 type Service struct {
 	repo RepositoryInterface
@@ -51,8 +53,15 @@ func (s *Service) CreateComment(ctx context.Context, comment string, train_id, u
 func (s *Service) UpdateComment(ctx context.Context, comment string, commentID uuid.UUID) error {
 	const op = "Comment.Service.UpdateComment"
 	log := s.log.With(slog.String("op", op))
-	err := s.repo.UpdateComment(ctx, comment, commentID)
+	commentold, err := s.repo.GetCommentById(ctx, commentID)
+	if commentold.IsDeleted {
+		return utils.ErrorCommentIsDeleted
+	}
 	if err != nil {
+		log.Error("failed get comment", slog.Any("err", err))
+		return err
+	}
+	if err := s.repo.UpdateComment(ctx, comment, commentID); err != nil {
 		log.Error("failed update comment", err.Error())
 		return err
 	}

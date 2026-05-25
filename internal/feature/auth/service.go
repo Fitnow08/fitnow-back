@@ -81,3 +81,25 @@ func (s *Service) Login(ctx context.Context, email, password string) (*domain.Us
 		RefreshToken: refresh,
 	}, nil
 }
+
+func (s *Service) GenerateNewTokens(ctx context.Context, token string) (*Tokens, error) {
+	const op = "Auth.Service.GenerateNewTokens"
+	log := s.log.With("op", op)
+	log.Info("Generating new tokens")
+
+	claims, err := ParseToken(token)
+	if err != nil {
+		log.Error("failed to parse refresh token", "error", err)
+		return nil, err
+	}
+
+	access, refresh, err := GenerateJwtTokens(claims.ID, "user")
+	if err != nil {
+		log.Error("failed to generate tokens", "error", err)
+		return nil, err
+	}
+	return &Tokens{
+		RefreshToken: refresh,
+		AccessToken:  access,
+	}, nil
+}
