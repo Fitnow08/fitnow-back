@@ -37,6 +37,16 @@ type CreateExerciseRequest struct {
 	Description string `json:"description" validate:"required"`
 }
 
+// @Summary GetAllExercises
+// @Tags exercises
+// @Description Get all exercises
+// @Produce json
+// @Success 200 {object} []domain.Exercise "All exercises"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Router /train/exercises [get]
 func (h *Handler) GetAllExercises(w http.ResponseWriter, r *http.Request) {
 	const op = "Exercises.Handler.GetAllExercises"
 	log := h.log.With("op", op)
@@ -52,6 +62,19 @@ func (h *Handler) GetAllExercises(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, exercises)
 }
 
+// @Summary CreateExercise
+// @Tags exercises
+// @Description Create new exercise
+// @Accept json
+// @Produce json
+// @Param input body CreateExerciseRequest true "Create exercise body json"
+// @Success 201 {object} domain.Exercise "Created exercise"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /train/exercises [post]
 func (h *Handler) CreateExercise(w http.ResponseWriter, r *http.Request) {
 	const op = "Exercises.Handler.CreateExercise"
 	log := h.log.With("op", op)

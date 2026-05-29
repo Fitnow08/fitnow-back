@@ -17,7 +17,7 @@ import (
 // @description This is a gateway server
 // @termsOfService  http://swagger.io/terms/
 
-// @host localhost:7111
+// @host localhost:7000
 // @BasePath /api/v1
 
 // @securityDefinitions.apikey BearerAuth

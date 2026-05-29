@@ -1,5 +1,12 @@
 basePath: /api/v1
 definitions:
+  auth.GetNewTokensRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
   auth.LoginRequest:
     properties:
       email:
@@ -25,11 +32,91 @@ definitions:
     - name
     - password
     type: object
+  auth.Tokens:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  comment.CreateCommentRequest:
+    properties:
+      comment:
+        type: string
+      parent_id:
+        type: string
+    required:
+    - comment
+    type: object
+  comment.UpdateCommentRequest:
+    properties:
+      comment:
+        type: string
+      parent_id:
+        type: string
+    required:
+    - comment
+    type: object
+  domain.Comment:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      is_deleted:
+        type: boolean
+      parent_id:
+        type: string
+      train_id:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+      version:
+        type: integer
+    type: object
   domain.ErrorResponse:
     properties:
       description:
         type: string
       key:
+        type: string
+    type: object
+  domain.Exercise:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      title:
+        type: string
+    type: object
+  domain.Train:
+    properties:
+      calories:
+        type: integer
+      category_id:
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: string
+      difficulty:
+        type: string
+      duration:
+        type: integer
+      id:
+        type: string
+      is_public:
+        type: boolean
+      title:
+        type: string
+      type:
         type: string
     type: object
   domain.User:
@@ -43,6 +130,77 @@ definitions:
       refresh_token:
         type: string
       title:
+        type: string
+    type: object
+  exercises.CreateExerciseRequest:
+    properties:
+      description:
+        type: string
+      title:
+        type: string
+    required:
+    - description
+    - title
+    type: object
+  rating.CreateRatingRequest:
+    properties:
+      rating:
+        type: integer
+    type: object
+  train.CreateTrainRequest:
+    properties:
+      calories:
+        minimum: 0
+        type: integer
+      difficulty:
+        enum:
+        - easy
+        - medium
+        - hard
+        type: string
+      duration:
+        minimum: 1
+        type: integer
+      is_public:
+        type: boolean
+      title:
+        type: string
+      type:
+        enum:
+        - strength
+        - cardio
+        - stretching
+        type: string
+    required:
+    - calories
+    - difficulty
+    - duration
+    - title
+    - type
+    type: object
+  train.UpdateTrainRequest:
+    properties:
+      calories:
+        minimum: 0
+        type: integer
+      difficulty:
+        enum:
+        - easy
+        - medium
+        - hard
+        type: string
+      duration:
+        minimum: 1
+        type: integer
+      is_public:
+        type: boolean
+      title:
+        type: string
+      type:
+        enum:
+        - strength
+        - cardio
+        - stretching
         type: string
     type: object
   traincategory.CreateTrainCategoryRequest:
@@ -77,7 +235,7 @@ definitions:
     required:
     - title
     type: object
-host: localhost:7111
+host: localhost:7000
 info:
   contact:
     url: https://github.com/Sanchir01
@@ -158,6 +316,443 @@ paths:
       summary: Register
       tags:
       - auth
+  /auth/token:
+    post:
+      description: get new tokens by refresh token
+      parameters:
+      - description: New tokens
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/auth.GetNewTokensRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Registered user
+          schema:
+            $ref: '#/definitions/auth.Tokens'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: NewTokens
+      tags:
+      - auth
+  /train:
+    get:
+      description: Get all public trains with pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Page size (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All public trains
+          schema:
+            items:
+              $ref: '#/definitions/domain.Train'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: GetAllTrains
+      tags:
+      - train
+    post:
+      consumes:
+      - application/json
+      description: Create new train
+      parameters:
+      - description: Create train body json
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/train.CreateTrainRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created train
+          schema:
+            $ref: '#/definitions/domain.Train'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: CreateTrain
+      tags:
+      - train
+  /train/{id}:
+    delete:
+      description: Delete train by id
+      parameters:
+      - description: train id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: DeleteTrain
+      tags:
+      - train
+    get:
+      description: Get train by id
+      parameters:
+      - description: train id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Train by id
+          schema:
+            $ref: '#/definitions/domain.Train'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: GetTrainByID
+      tags:
+      - train
+    put:
+      consumes:
+      - application/json
+      description: Update train by id
+      parameters:
+      - description: train id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update train body json
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/train.UpdateTrainRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated train
+          schema:
+            $ref: '#/definitions/domain.Train'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: UpdateTrain
+      tags:
+      - train
+  /train/{id}/add:
+    post:
+      description: Add train to the current user
+      parameters:
+      - description: train id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ok
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: AddUserTrain
+      tags:
+      - train
+  /train/{id}/image:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload train image (multipart form, field "image", max 10MB)
+      parameters:
+      - description: train id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Train image file
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: UploadTrainImage
+      tags:
+      - train
+  /train/{id}/ratings:
+    post:
+      consumes:
+      - application/json
+      description: Create rating for a train by the current user
+      parameters:
+      - description: train id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Create rating body json
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/rating.CreateRatingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: CreateTrainRating
+      tags:
+      - ratings
+    put:
+      consumes:
+      - application/json
+      description: Update rating for a train by the current user
+      parameters:
+      - description: train id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Update rating body json
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/rating.CreateRatingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: UpdateTrainRating
+      tags:
+      - ratings
+  /train/{id}/remove:
+    delete:
+      description: Remove train from the current user
+      parameters:
+      - description: train id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: RemoveUserTrain
+      tags:
+      - train
   /train/category:
     get:
       description: Get all train category
@@ -288,6 +883,267 @@ paths:
       summary: UpdateTrainCategory
       tags:
       - train-category
+  /train/comments/{id}:
+    delete:
+      description: Delete comment by user id and train id
+      parameters:
+      - description: train id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Registered user
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete comment
+      tags:
+      - comments
+    put:
+      description: Update comment text
+      parameters:
+      - description: train id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: create train comment body
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/comment.UpdateCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Registered user
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update comment
+      tags:
+      - comments
+  /train/comments/{train-id}:
+    get:
+      description: get all train comments
+      parameters:
+      - description: train id
+        in: path
+        name: train-id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Registered user
+          schema:
+            items:
+              $ref: '#/definitions/domain.Comment'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: GEt train comments
+      tags:
+      - comments
+    post:
+      description: Create train comment
+      parameters:
+      - description: train id
+        in: path
+        name: train-id
+        required: true
+        type: string
+      - description: create train comment body
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/comment.CreateCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Registered user
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create train comment
+      tags:
+      - comments
+  /train/exercises:
+    get:
+      description: Get all exercises
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All exercises
+          schema:
+            items:
+              $ref: '#/definitions/domain.Exercise'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      summary: GetAllExercises
+      tags:
+      - exercises
+    post:
+      consumes:
+      - application/json
+      description: Create new exercise
+      parameters:
+      - description: Create exercise body json
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/exercises.CreateExerciseRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created exercise
+          schema:
+            $ref: '#/definitions/domain.Exercise'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: CreateExercise
+      tags:
+      - exercises
+  /train/me:
+    get:
+      description: Get trains of the current authorized user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User trains
+          schema:
+            items:
+              $ref: '#/definitions/domain.Train'
+            type: array
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/domain.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: GetUserTrains
+      tags:
+      - train
 securityDefinitions:
   BearerAuth:
     description: 'Enter your JWT token (you can use it with or without "Bearer " prefix).

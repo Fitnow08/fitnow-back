@@ -32,6 +32,20 @@ func NewHandler(log *slog.Logger, service TrainService) *Handler {
 	}
 }
 
+// @Summary CreateTrainRating
+// @Tags ratings
+// @Description Create rating for a train by the current user
+// @Accept json
+// @Produce json
+// @Param id path string true "train id"
+// @Param input body CreateRatingRequest true "Create rating body json"
+// @Success 201 {string} string "ok"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /train/{id}/ratings [post]
 func (h *Handler) CreateTrainRating(w http.ResponseWriter, r *http.Request) {
 	const op = "Rating.Handler.CreateTrainRating"
 	log := h.log.With("op", op)
@@ -79,6 +93,20 @@ func (h *Handler) CreateTrainRating(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, "ok")
 }
 
+// @Summary UpdateTrainRating
+// @Tags ratings
+// @Description Update rating for a train by the current user
+// @Accept json
+// @Produce json
+// @Param id path string true "train id"
+// @Param input body CreateRatingRequest true "Update rating body json"
+// @Success 200 {string} string "ok"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /train/{id}/ratings [put]
 func (h *Handler) UpdateTrainRating(w http.ResponseWriter, r *http.Request) {
 	const op = "Rating.Handler.UpdateTrainRating"
 	log := h.log.With("op", op)

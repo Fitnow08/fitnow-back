@@ -22,6 +22,11 @@ ats_database:
   max_attempts: 5
 
 clients:
+  auth_client:
+    address: "${AUTH_HOST}:${AUTH_PORT}"
+    timeout: 5s
+    retries: 5
+    insecure: true
   employee_client:
     address: "${EMPLOYEE_HOST}:${EMPLOYEE_PORT}"
     timeout: 5s

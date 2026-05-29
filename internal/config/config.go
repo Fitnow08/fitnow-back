@@ -15,6 +15,16 @@ type Config struct {
 	HttpServer HttpServer `yaml:"http_server"`
 	DB         PrimaryDB  `yaml:"database"`
 	MINIOS3    Minio      `yaml:"minio_s3"`
+	Clients    Clients    `yaml:"clients"`
+}
+type Clients struct {
+	Auth Client `yaml:"auth_client"`
+}
+type Client struct {
+	Address  string        `yaml:"address"`
+	Timeout  time.Duration `yaml:"timeout" env-default:"5s"`
+	Retries  int           `yaml:"retries" env-default:"5"`
+	Insecure bool          `yaml:"insecure" env-default:"true"`
 }
 type HttpServer struct {
 	Timeout     time.Duration `yaml:"timeout"  env-default:"4s"`

@@ -35,10 +35,21 @@ func NewHandler(log *slog.Logger, service ServiceInterface) *Handler {
 	}
 }
 
+// @Summary GEt train comments
+// @Tags comments
+// @Description get all train comments
+// @Produce json
+// @Param train-id path string true "train id"
+// @Success 200 {object} []domain.Comment "Registered user"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Router /train/comments/{train-id} [get]
 func (h *Handler) GetTrainComments(w http.ResponseWriter, r *http.Request) {
 	const op = "Comment.Handler.GetTrainComments"
 	log := h.log.With(slog.String("op", op))
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "train-id")
 	if id == "" {
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{"error": "id is required"})
@@ -58,6 +69,19 @@ func (h *Handler) GetTrainComments(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, comments)
 }
 
+// @Summary Create train comment
+// @Tags comments
+// @Description Create train comment
+// @Produce json
+// @Param train-id path string true "train id"
+// @Param input body CreateCommentRequest true "create train comment body"
+// @Success 200 {string} string "Registered user"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /train/comments/{train-id} [post]
 func (h *Handler) CreateTrainComment(w http.ResponseWriter, r *http.Request) {
 	const op = "Comment.Handler.CreateTrainComment"
 	log := h.log.With(slog.String("op", op))
@@ -80,7 +104,7 @@ func (h *Handler) CreateTrainComment(w http.ResponseWriter, r *http.Request) {
 		render.JSON(w, r, api.Error("invalid request body"))
 		return
 	}
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "train-id")
 	if id == "" {
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{"error": "id is required"})
@@ -103,6 +127,19 @@ func (h *Handler) CreateTrainComment(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, "ok")
 }
 
+// @Summary Update comment
+// @Tags comments
+// @Description Update comment text
+// @Produce json
+// @Param id path string true "train id"
+// @Param input body UpdateCommentRequest true "create train comment body"
+// @Success 200 {string} string "Registered user"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /train/comments/{id} [put]
 func (h *Handler) UpdateComment(w http.ResponseWriter, r *http.Request) {
 	const op = "Comment.Handler.UpdateComment"
 	log := h.log.With(slog.String("op", op))
@@ -137,7 +174,22 @@ func (h *Handler) UpdateComment(w http.ResponseWriter, r *http.Request) {
 		render.JSON(w, r, map[string]string{"error": "failed to update comment"})
 		return
 	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, "ok")
 }
+
+// @Summary Delete comment
+// @Tags comments
+// @Description Delete comment by user id and train id
+// @Produce json
+// @Param id path string true "train id"
+// @Success 200 {string} string "Registered user"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /train/comments/{id} [delete]
 func (h *Handler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 	const op = "Comment.Handler.DeleteComment"
 	log := h.log.With(slog.String("op", op))
@@ -162,6 +214,6 @@ func (h *Handler) DeleteComment(w http.ResponseWriter, r *http.Request) {
 		render.JSON(w, r, map[string]string{"error": err.Error()})
 		return
 	}
-	render.Status(r, http.StatusNoContent)
+	render.Status(r, http.StatusOK)
 	render.JSON(w, r, "ok")
 }

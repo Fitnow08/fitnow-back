@@ -11,9 +11,13 @@ import (
 )
 
 type AuthService interface {
-	Register(ctx context.Context, req RegisterRequest) (*domain.User, error)
+	Register(ctx context.Context, req RegisterRequest) error
 	Login(ctx context.Context, email, password string) (*domain.User, error)
 	GenerateNewTokens(ctx context.Context, token string) (*Tokens, error)
+	VerifyAccount(ctx context.Context, email string, code int64) (*domain.User, error)
+	ResendVerifyCode(ctx context.Context, email string) error
+	ResetPassword(ctx context.Context, email string) error
+	ConfirmResetPassword(ctx context.Context, email, newPassword string, code int64) error
 }
 type Handler struct {
 	log         *slog.Logger
@@ -98,17 +102,28 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.autgservice.Register(r.Context(), req)
+	err := h.autgservice.Register(r.Context(), req)
 	if err != nil {
 		log.Error("failed to register user", slog.Any("err", err.Error()))
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, "failed register")
 		return
 	}
-	render.Status(r, http.StatusCreated)
-	render.JSON(w, r, user)
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, "ok")
 }
 
+// @Summary NewTokens
+// @Tags auth
+// @Description get new tokens by refresh token
+// @Produce json
+// @Param input body GetNewTokensRequest true "New tokens"
+// @Success 200 {object} auth.Tokens "Registered user"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Router /auth/token [post]
 func (h *Handler) NewTokens(w http.ResponseWriter, r *http.Request) {
 	const op = "Auth.Handler.NewTokens"
 	log := h.log.With(slog.String("op", op))
@@ -135,3 +150,86 @@ func (h *Handler) NewTokens(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusCreated)
 	render.JSON(w, r, tokens)
 }
+
+func (h *Handler) VerifyAccount(w http.ResponseWriter, r *http.Request) {
+	const op = "Auth.Handler.VerifyAccount"
+	log := h.log.With(slog.String("op", op))
+	var req VerifyAccountRequest
+	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		log.Error("failed to decode body verify account")
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, "invalid request body")
+		return
+	}
+	if err := h.validator.Struct(req); err != nil {
+		log.Error("invalid request", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid request body"))
+		return
+	}
+
+	data, err := h.autgservice.VerifyAccount(r.Context(), req.Email, req.Code)
+	if err != nil {
+		log.Error("failed to verify account", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, "failed verify account")
+		return
+	}
+	render.Status(r, http.StatusCreated)
+	render.JSON(w, r, data)
+}
+
+func (h *Handler) ResendVerifyCode(w http.ResponseWriter, r *http.Request) {
+	const op = "Auth.Handler.VerifyAccount"
+	log := h.log.With(slog.String("op", op))
+	var req ResendVerifyCodeRequest
+	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		log.Error("failed to decode body verify account")
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, "invalid request body")
+		return
+	}
+	if err := h.validator.Struct(req); err != nil {
+		log.Error("invalid request", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid request body"))
+		return
+	}
+	if err := h.autgservice.ResendVerifyCode(r.Context(), req.Email); err != nil {
+		log.Error("failed to resend veridy code", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, "failed resend verify code")
+		return
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, "ok")
+}
+
+func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	const op = "Auth.Handler.ResetPassword"
+	log := h.log.With(slog.String("op", op))
+
+	var req ResetPasswordRequest
+	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		log.Error("failed to decode body verify account")
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, "invalid request body")
+		return
+	}
+	if err := h.validator.Struct(req); err != nil {
+		log.Error("invalid request", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid request body"))
+		return
+	}
+	if err := h.autgservice.ResetPassword(r.Context(), req.Email); err != nil {
+		log.Error("failed to resend veridy code", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, "failed resend verify code")
+		return
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, "ok")
+}
+
+func (h *Handler) ConfirmResetPassword(w http.ResponseWriter, r *http.Request) {}

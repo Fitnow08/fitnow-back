@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	authgrpc "github.com/Sanchir01/fitnow/internal/clients/grpc/auth"
 	"github.com/Sanchir01/fitnow/internal/config"
 	httpserver "github.com/Sanchir01/fitnow/internal/servers/http"
 	"github.com/Sanchir01/fitnow/pkg/logger"
@@ -34,8 +35,13 @@ func NewApp(ctx context.Context) (*App, error) {
 	httpsrv := httpserver.NewHTTPServer(cfg.HttpServer.Host, cfg.HttpServer.Port, cfg.HttpServer.Timeout,
 		cfg.HttpServer.IdleTimeout,
 	)
+	authClient, err := authgrpc.NewAuthClient(l, cfg.Clients.Auth)
+	if err != nil {
+		l.Info("authClient", "err", err.Error())
+		return nil, err
+	}
 	repo := NewRepository(databases, l)
-	services := NewServices(repo, s3minio, l)
+	services := NewServices(repo, s3minio, authClient, l)
 	handler := NewHandlers(l, services, httpsrv.Upgrader())
 
 	return &App{

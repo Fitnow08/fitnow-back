@@ -3,9 +3,9 @@ package auth
 import (
 	"context"
 	"errors"
-	"fmt"
+	authgrpc "github.com/Sanchir01/fitnow/internal/clients/grpc/auth"
 	"github.com/Sanchir01/fitnow/internal/models/domain"
-	"github.com/jackc/pgx/v5"
+	"github.com/google/uuid"
 	"log/slog"
 )
 
@@ -16,69 +16,43 @@ type AuthRepository interface {
 type Service struct {
 	log            *slog.Logger
 	authrepository AuthRepository
+	authClient     *authgrpc.AuthClient
 }
 
-func NewService(log *slog.Logger, authrepository AuthRepository) *Service {
-	return &Service{log: log, authrepository: authrepository}
+func NewService(log *slog.Logger, authrepository AuthRepository, authClient *authgrpc.AuthClient) *Service {
+	return &Service{log: log, authrepository: authrepository, authClient: authClient}
 }
-func (s *Service) Register(ctx context.Context, req RegisterRequest) (*domain.User, error) {
+func (s *Service) Register(ctx context.Context, req RegisterRequest) error {
 	const op = "Auth.Service.Register"
 	log := s.log.With("op", op)
-	_, err := s.authrepository.UserByEmail(ctx, req.Email)
-	if err == nil {
-		return nil, errors.New("user already exists")
-	}
-	if !errors.Is(err, pgx.ErrNoRows) {
-		return nil, err // только реальные ошибки                                                                                                                                                                                    }
+	_, err := s.authClient.Register(ctx, req.Email, req.Password, req.Name)
+	if err != nil {
+		log.Error(err.Error())
+		return err
 	}
 
-	hashpass, err := GeneratePasswordHash(req.Password)
-	if err != nil {
-		log.Error("failed to generate password hash", "error", err)
-		return nil, err
-	}
-	userdb, err := s.authrepository.CreateUser(ctx, req.Email, req.Name, hashpass)
-	if err != nil {
-		log.Error("failed to create user", "error", err)
-		return nil, err
-	}
-	access, refresh, err := GenerateJwtTokens(userdb.ID, "user")
-	if err != nil {
-		log.Error("failed to generate access token", "error", err)
-		return nil, err
-	}
-	return &domain.User{
-		ID:           userdb.ID,
-		Email:        userdb.Email,
-		Title:        userdb.Title,
-		AccessToken:  access,
-		RefreshToken: refresh,
-	}, nil
+	return nil
 }
 
 func (s *Service) Login(ctx context.Context, email, password string) (*domain.User, error) {
 	const op = "Auth.Service.Login"
 	log := s.log.With("op", op)
-
-	user, err := s.authrepository.UserByEmail(ctx, email)
+	data, err := s.authClient.Login(ctx, email, password)
 	if err != nil {
-		log.Error("failed to get user by email", "error", err)
+		log.Error("failed to login", "error", err)
 		return nil, err
 	}
-	if !VerifyPassword(user.Password, password) {
-		return nil, fmt.Errorf("invalid password")
-	}
-	access, refresh, err := GenerateJwtTokens(user.ID, "user")
+	dataid, err := uuid.Parse(data.Id)
 	if err != nil {
-		log.Error("failed to generate access token", "error", err)
+		log.Error("failed to parse id", "error", err)
 		return nil, err
 	}
 	return &domain.User{
-		ID:           user.ID,
-		Email:        user.Email,
-		Title:        user.Title,
-		AccessToken:  access,
-		RefreshToken: refresh,
+		ID:           dataid,
+		Email:        data.Email,
+		Title:        data.Title,
+		AccessToken:  data.RefreshToken,
+		RefreshToken: data.RefreshToken,
 	}, nil
 }
 
@@ -87,19 +61,71 @@ func (s *Service) GenerateNewTokens(ctx context.Context, token string) (*Tokens,
 	log := s.log.With("op", op)
 	log.Info("Generating new tokens")
 
-	claims, err := ParseToken(token)
-	if err != nil {
-		log.Error("failed to parse refresh token", "error", err)
-		return nil, err
-	}
-
-	access, refresh, err := GenerateJwtTokens(claims.ID, "user")
+	tokens, err := s.authClient.NewTokens(ctx, token)
 	if err != nil {
 		log.Error("failed to generate tokens", "error", err)
 		return nil, err
 	}
 	return &Tokens{
-		RefreshToken: refresh,
-		AccessToken:  access,
+		RefreshToken: tokens.RefreshToken,
+		AccessToken:  tokens.AccessToken,
 	}, nil
+}
+
+func (s *Service) VerifyAccount(ctx context.Context, email string, code int64) (*domain.User, error) {
+	const op = "Auth.Service.VerifyAccount"
+	log := s.log.With("op", op)
+
+	data, err := s.authClient.VerifyAccount(ctx, email, code)
+	if err != nil {
+		log.Error("failed to verify account", "error", err)
+		return nil, err
+	}
+	uuidac, err := uuid.Parse(data.Id)
+	if err != nil {
+		log.Error("failed to parse id", "error", err)
+		return nil, err
+	}
+	return &domain.User{
+		uuidac,
+		data.Email,
+		data.Title,
+		data.RefreshToken,
+		data.AccessToken,
+	}, nil
+}
+
+func (s *Service) ResendVerifyCode(ctx context.Context, email string) error {
+	const op = "Auth.Service.ResendVerifyCode"
+	log := s.log.With("op", op)
+	_, err := s.authClient.ResendVerifyCode(ctx, email)
+	if err != nil {
+		log.Error("failed to resend verify code", "error", err)
+		return err
+	}
+	return nil
+}
+
+func (s *Service) ResetPassword(ctx context.Context, email string) error {
+	const op = "Auth.Service.ResetPassword"
+	log := s.log.With("op", op)
+	_, err := s.authClient.ResetPassword(ctx, email)
+	if err != nil {
+		log.Error("failed to reset password", "error", err)
+		return err
+	}
+	return nil
+}
+func (s *Service) ConfirmResetPassword(ctx context.Context, email, newPassword string, code int64) error {
+	const op = "Auth.Service.ConfirmResetPassword"
+	log := s.log.With("op", op)
+	ok, err := s.authClient.ConfirmResetPassword(ctx, email, newPassword, code)
+	if err != nil {
+		log.Error("failed to confirm reset password", "error", err)
+		return err
+	}
+	if ok.Ok {
+		return errors.New("failed to confirm reset password")
+	}
+	return nil
 }

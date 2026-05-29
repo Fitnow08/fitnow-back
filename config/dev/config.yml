@@ -15,6 +15,13 @@ minio_s3:
   secret_key: minioadmin
   ssl: false
 
+clients:
+  auth_client:
+    address: "localhost:44044"
+    timeout: 5s
+    retries: 5
+    insecure: true
+
 http_server:
   host: 0.0.0.0
   port: 7000

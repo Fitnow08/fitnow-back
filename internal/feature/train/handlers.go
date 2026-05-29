@@ -44,6 +44,18 @@ func NewHandler(log *slog.Logger, trainservice TrainService) *Handler {
 	}
 }
 
+// @Summary GetAllTrains
+// @Tags train
+// @Description Get all public trains with pagination
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Page size (max 100)" default(20)
+// @Success 200 {object} []domain.Train "All public trains"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Router /train [get]
 func (h *Handler) GetAllTrains(w http.ResponseWriter, r *http.Request) {
 	const op = "Train.Handler.GetAllTrains"
 	log := h.log.With("op", op)
@@ -78,6 +90,17 @@ func (h *Handler) GetAllTrains(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, trains)
 }
 
+// @Summary GetTrainByID
+// @Tags train
+// @Description Get train by id
+// @Produce json
+// @Param id path string true "train id"
+// @Success 200 {object} domain.Train "Train by id"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Router /train/{id} [get]
 func (h *Handler) GetTrainByID(w http.ResponseWriter, r *http.Request) {
 	const op = "Train.Handler.GetTrainByID"
 	log := h.log.With("op", op)
@@ -105,6 +128,19 @@ func (h *Handler) GetTrainByID(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, train)
 }
 
+// @Summary CreateTrain
+// @Tags train
+// @Description Create new train
+// @Accept json
+// @Produce json
+// @Param input body CreateTrainRequest true "Create train body json"
+// @Success 201 {object} domain.Train "Created train"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /train [post]
 func (h *Handler) CreateTrain(w http.ResponseWriter, r *http.Request) {
 	const op = "Train.Handler.CreateTrain"
 	log := h.log.With("op", op)
@@ -139,6 +175,20 @@ func (h *Handler) CreateTrain(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, train)
 }
 
+// @Summary UpdateTrain
+// @Tags train
+// @Description Update train by id
+// @Accept json
+// @Produce json
+// @Param id path string true "train id"
+// @Param input body UpdateTrainRequest true "Update train body json"
+// @Success 200 {object} domain.Train "Updated train"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /train/{id} [put]
 func (h *Handler) UpdateTrain(w http.ResponseWriter, r *http.Request) {
 	const op = "Train.Handler.UpdateTrain"
 	log := h.log.With("op", op)
@@ -180,6 +230,18 @@ func (h *Handler) UpdateTrain(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, train)
 }
 
+// @Summary DeleteTrain
+// @Tags train
+// @Description Delete train by id
+// @Produce json
+// @Param id path string true "train id"
+// @Success 204 "No content"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /train/{id} [delete]
 func (h *Handler) DeleteTrain(w http.ResponseWriter, r *http.Request) {
 	const op = "Train.Handler.DeleteTrain"
 	log := h.log.With("op", op)
@@ -208,6 +270,17 @@ func (h *Handler) DeleteTrain(w http.ResponseWriter, r *http.Request) {
 	render.NoContent(w, r)
 }
 
+// @Summary GetUserTrains
+// @Tags train
+// @Description Get trains of the current authorized user
+// @Produce json
+// @Success 200 {object} []domain.Train "User trains"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /train/me [get]
 func (h *Handler) GetUserTrains(w http.ResponseWriter, r *http.Request) {
 	const op = "Train.Handler.GetUserTrains"
 	log := h.log.With("op", op)
@@ -230,6 +303,18 @@ func (h *Handler) GetUserTrains(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, trains)
 }
 
+// @Summary AddUserTrain
+// @Tags train
+// @Description Add train to the current user
+// @Produce json
+// @Param id path string true "train id"
+// @Success 201 {object} map[string]bool "ok"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /train/{id}/add [post]
 func (h *Handler) AddUserTrain(w http.ResponseWriter, r *http.Request) {
 	const op = "Train.Handler.AddUserTrain"
 	log := h.log.With("op", op)
@@ -258,6 +343,18 @@ func (h *Handler) AddUserTrain(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, map[string]bool{"ok": true})
 }
 
+// @Summary RemoveUserTrain
+// @Tags train
+// @Description Remove train from the current user
+// @Produce json
+// @Param id path string true "train id"
+// @Success 204 "No content"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /train/{id}/remove [delete]
 func (h *Handler) RemoveUserTrain(w http.ResponseWriter, r *http.Request) {
 	const op = "Train.Handler.RemoveUserTrain"
 	log := h.log.With("op", op)
@@ -286,6 +383,20 @@ func (h *Handler) RemoveUserTrain(w http.ResponseWriter, r *http.Request) {
 	render.NoContent(w, r)
 }
 
+// @Summary UploadTrainImage
+// @Tags train
+// @Description Upload train image (multipart form, field "image", max 10MB)
+// @Accept multipart/form-data
+// @Produce json
+// @Param id path string true "train id"
+// @Param image formData file true "Train image file"
+// @Success 201 {string} string "ok"
+// @Failure 400 {object} domain.ErrorResponse "Bad request"
+// @Failure 401 {object} domain.ErrorResponse "Unauthorized"
+// @Failure 404 {object} domain.ErrorResponse "Not found"
+// @Failure 500 {object} domain.ErrorResponse "Internal server error"
+// @Security BearerAuth
+// @Router /train/{id}/image [post]
 func (h *Handler) UploadTrainImage(w http.ResponseWriter, r *http.Request) {
 	const op = "Train.Handler.UploadTrainImage"
 	log := h.log.With("op", op)
