@@ -7,6 +7,7 @@ import (
 	"log"
 	"log/slog"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -38,6 +39,22 @@ type Minio struct {
 	ACCESS_KEY string `yaml:"access_key"`
 	SECRET_KEY string `yaml:"secret_key"`
 	SSL        bool   `yaml:"ssl"`
+	// PublicURL — внешний адрес minio для отдачи ссылок на файлы фронту.
+	// Если пуст — собирается из SSL+URL (в dev это http://localhost:9000).
+	// В prod задаётся отдельно, когда публичный адрес (CDN/прокси) отличается от адреса подключения.
+	PublicURL string `yaml:"public_url"`
+}
+
+// PublicBaseURL возвращает базовый публичный URL minio без завершающего слэша.
+func (m Minio) PublicBaseURL() string {
+	if m.PublicURL != "" {
+		return strings.TrimRight(m.PublicURL, "/")
+	}
+	scheme := "http"
+	if m.SSL {
+		scheme = "https"
+	}
+	return fmt.Sprintf("%s://%s", scheme, m.URL)
 }
 type PrimaryDB struct {
 	Host        string `yaml:"host"`

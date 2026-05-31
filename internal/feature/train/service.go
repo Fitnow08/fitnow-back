@@ -40,7 +40,7 @@ func (s *Service) GetAllPublicTrains(ctx context.Context, param AllTrainsParams)
 	}
 	trains := make([]*domain.Train, 0, len(rows))
 	for _, t := range rows {
-		trains = append(trains, dbToDomain(t))
+		trains = append(trains, s.dbToDomain(t))
 	}
 	return trains, nil
 }
@@ -50,7 +50,7 @@ func (s *Service) GetTrainByID(ctx context.Context, id uuid.UUID) (*domain.Train
 	if err != nil {
 		return nil, err
 	}
-	return dbToDomain(t), nil
+	return s.dbToDomain(t), nil
 }
 
 func (s *Service) CreateTrain(ctx context.Context, req CreateTrainRequest, userID uuid.UUID) (*domain.Train, error) {
@@ -58,7 +58,7 @@ func (s *Service) CreateTrain(ctx context.Context, req CreateTrainRequest, userI
 	if err != nil {
 		return nil, err
 	}
-	return dbToDomain(t), nil
+	return s.dbToDomain(t), nil
 }
 
 func (s *Service) UpdateTrain(ctx context.Context, id uuid.UUID, req UpdateTrainRequest, userID uuid.UUID) (*domain.Train, error) {
@@ -66,7 +66,7 @@ func (s *Service) UpdateTrain(ctx context.Context, id uuid.UUID, req UpdateTrain
 	if err != nil {
 		return nil, err
 	}
-	return dbToDomain(t), nil
+	return s.dbToDomain(t), nil
 }
 
 func (s *Service) DeleteTrain(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
@@ -80,7 +80,7 @@ func (s *Service) GetUserTrains(ctx context.Context, userID uuid.UUID) ([]*domai
 	}
 	trains := make([]*domain.Train, 0, len(rows))
 	for _, t := range rows {
-		trains = append(trains, dbToDomain(t))
+		trains = append(trains, s.dbToDomain(t))
 	}
 	return trains, nil
 }
@@ -104,7 +104,7 @@ func (s *Service) UploadTrainImage(ctx context.Context, trainID uuid.UUID, ext, 
 	return nil
 }
 
-func dbToDomain(t *TrainDB) *domain.Train {
+func (s *Service) dbToDomain(t *TrainDB) *domain.Train {
 	return &domain.Train{
 		ID:         t.ID,
 		Title:      t.Title,
@@ -114,6 +114,7 @@ func dbToDomain(t *TrainDB) *domain.Train {
 		Difficulty: t.Difficulty,
 		CategoryId: t.CategoryId,
 		Calories:   t.Calories,
+		ImageURL:   s.s3.PublicURL(t.ImagePath),
 		CreatedBy:  t.CreatedBy,
 		CreatedAt:  t.CreatedAt,
 	}

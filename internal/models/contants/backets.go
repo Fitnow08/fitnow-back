@@ -1,5 +1,6 @@
 package constants
 
 const (
-	TrainsBacket = "trains"
+	TrainsBacket   = "trains"
+	ProgramsBacket = "programs"
 )

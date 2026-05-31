@@ -17,6 +17,7 @@ type TrainDB struct {
 	CreatedAt  time.Time `db:"created_at"`
 	CategoryId uuid.UUID `db:"category_id"`
 	Calories   int64     `db:"calories"`
+	ImagePath  string    `db:"image_path"`
 	UpdatedAt  time.Time `db:"updated_at"`
 	Version    int64     `db:"version"`
 }

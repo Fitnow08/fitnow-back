@@ -79,6 +79,20 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 				r.Delete("/{id}", handlers.TrainCategoryHandler.DeleteTrainCategory)
 			})
 		})
+		r.Route("/program", func(r chi.Router) {
+			r.Get("/", handlers.ProgramHandler.GetAllPrograms)
+			r.Group(func(r chi.Router) {
+				r.Use(customMiddleware.AuthMiddleware(""))
+				r.Post("/", handlers.ProgramHandler.CreateProgram)
+				r.Post("/{id}/image", handlers.ProgramHandler.AddProgramImage)
+			})
+			r.Route("/category", func(r chi.Router) {
+				r.Get("/", handlers.ProgramCategoryHandler.GetAllProgramCategory)
+				r.Post("/", handlers.ProgramCategoryHandler.CreateProgramCategory)
+				r.Put("/{id}", handlers.ProgramCategoryHandler.UpdateProgramCategory)
+				r.Delete("/{id}", handlers.ProgramCategoryHandler.DeleteProgramCategory)
+			})
+		})
 
 	})
 	r.Get("/swagger/*", httpSwagger.Handler(

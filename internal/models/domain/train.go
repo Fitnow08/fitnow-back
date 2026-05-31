@@ -14,6 +14,7 @@ type Train struct {
 	Difficulty string    `json:"difficulty"`
 	Calories   int64     `json:"calories"`
 	CategoryId uuid.UUID `json:"category_id"`
+	ImageURL   string    `json:"image_url"`
 	CreatedBy  uuid.UUID `json:"created_by"`
 	CreatedAt  time.Time `json:"created_at"`
 }

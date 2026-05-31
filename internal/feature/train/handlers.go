@@ -401,7 +401,7 @@ func (h *Handler) UploadTrainImage(w http.ResponseWriter, r *http.Request) {
 	const op = "Train.Handler.UploadTrainImage"
 	log := h.log.With("op", op)
 	idStr := chi.URLParam(r, "id")
-	trainID, err := uuid.Parse(idStr)
+	programId, err := uuid.Parse(idStr)
 	if err != nil {
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, api.Error("invalid id"))
@@ -421,7 +421,7 @@ func (h *Handler) UploadTrainImage(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 	ext := filepath.Ext(header.Filename)
 	contentType := header.Header.Get("Content-Type")
-	if err := h.trainservice.UploadTrainImage(r.Context(), trainID, ext, contentType, header.Size, file); err != nil {
+	if err := h.trainservice.UploadTrainImage(r.Context(), programId, ext, contentType, header.Size, file); err != nil {
 		log.Error("failed to upload train", slog.Any("err", err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, api.Error("failed to upload train"))

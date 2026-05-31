@@ -27,7 +27,7 @@ func NewRepository(db *pgxpool.Pool, log *slog.Logger) *Repository {
 func (r *Repository) GetAllPublicTrains(ctx context.Context, param AllTrainsParams) ([]*TrainDB, error) {
 	offset := (param.Page - 1) * param.Limit
 	query, args, err := sq.
-		Select("id", "title", "type", "duration", "is_public", "difficulty", "calories", "created_by", "created_at", "version").
+		Select("id", "title", "type", "duration", "is_public", "difficulty", "calories", "created_by", "created_at", "version", "image_path").
 		From("trains").
 		Where(sq.Eq{"is_public": true}).
 		Limit(param.Limit).
@@ -46,7 +46,7 @@ func (r *Repository) GetAllPublicTrains(ctx context.Context, param AllTrainsPara
 	var trains []*TrainDB
 	for rows.Next() {
 		var t TrainDB
-		if err := rows.Scan(&t.ID, &t.Title, &t.Type, &t.Duration, &t.IsPublic, &t.Difficulty, &t.Calories, &t.CreatedBy, &t.CreatedAt, &t.Version); err != nil {
+		if err := rows.Scan(&t.ID, &t.Title, &t.Type, &t.Duration, &t.IsPublic, &t.Difficulty, &t.Calories, &t.CreatedBy, &t.CreatedAt, &t.Version, &t.ImagePath); err != nil {
 			return nil, err
 		}
 		trains = append(trains, &t)
@@ -56,7 +56,7 @@ func (r *Repository) GetAllPublicTrains(ctx context.Context, param AllTrainsPara
 
 func (r *Repository) GetTrainByID(ctx context.Context, id uuid.UUID) (*TrainDB, error) {
 	query, args, err := sq.
-		Select("id", "title", "type", "duration", "is_public", "difficulty", "calories", "created_by", "created_at", "version").
+		Select("id", "title", "type", "duration", "is_public", "difficulty", "calories", "created_by", "created_at", "version", "image_path").
 		From("trains").
 		Where(sq.Eq{"id": id}).
 		PlaceholderFormat(sq.Dollar).
@@ -65,7 +65,7 @@ func (r *Repository) GetTrainByID(ctx context.Context, id uuid.UUID) (*TrainDB, 
 		return nil, err
 	}
 	var t TrainDB
-	if err := r.db.QueryRow(ctx, query, args...).Scan(&t.ID, &t.Title, &t.Type, &t.Duration, &t.IsPublic, &t.Difficulty, &t.Calories, &t.CreatedBy, &t.CreatedAt, &t.Version); err != nil {
+	if err := r.db.QueryRow(ctx, query, args...).Scan(&t.ID, &t.Title, &t.Type, &t.Duration, &t.IsPublic, &t.Difficulty, &t.Calories, &t.CreatedBy, &t.CreatedAt, &t.Version, &t.ImagePath); err != nil {
 		return nil, err
 	}
 	return &t, nil
@@ -76,14 +76,14 @@ func (r *Repository) CreateTrain(ctx context.Context, req CreateTrainRequest, us
 		Insert("trains").
 		Columns("title", "type", "duration", "is_public", "difficulty", "calories", "created_by").
 		Values(req.Title, req.Type, req.Duration, req.IsPublic, req.Difficulty, req.Calories, userID).
-		Suffix("RETURNING id, title, type, duration, is_public, difficulty, calories, created_by, created_at").
+		Suffix("RETURNING id, title, type, duration, is_public, difficulty, calories, created_by, created_at, image_path").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return nil, err
 	}
 	var t TrainDB
-	if err := r.db.QueryRow(ctx, query, args...).Scan(&t.ID, &t.Title, &t.Type, &t.Duration, &t.IsPublic, &t.Difficulty, &t.Calories, &t.CreatedBy, &t.CreatedAt); err != nil {
+	if err := r.db.QueryRow(ctx, query, args...).Scan(&t.ID, &t.Title, &t.Type, &t.Duration, &t.IsPublic, &t.Difficulty, &t.Calories, &t.CreatedBy, &t.CreatedAt, &t.ImagePath); err != nil {
 		return nil, err
 	}
 	return &t, nil
@@ -110,13 +110,13 @@ func (r *Repository) UpdateTrain(ctx context.Context, id uuid.UUID, req UpdateTr
 		builder = builder.Set("calories", req.Calories)
 	}
 	query, args, err := builder.
-		Suffix("RETURNING id, title, type, duration, is_public, difficulty, calories, created_by, created_at").
+		Suffix("RETURNING id, title, type, duration, is_public, difficulty, calories, created_by, created_at, image_path").
 		ToSql()
 	if err != nil {
 		return nil, err
 	}
 	var t TrainDB
-	if err := r.db.QueryRow(ctx, query, args...).Scan(&t.ID, &t.Title, &t.Type, &t.Duration, &t.IsPublic, &t.Difficulty, &t.Calories, &t.CreatedBy, &t.CreatedAt); err != nil {
+	if err := r.db.QueryRow(ctx, query, args...).Scan(&t.ID, &t.Title, &t.Type, &t.Duration, &t.IsPublic, &t.Difficulty, &t.Calories, &t.CreatedBy, &t.CreatedAt, &t.ImagePath); err != nil {
 		return nil, err
 	}
 	return &t, nil
@@ -137,7 +137,7 @@ func (r *Repository) DeleteTrain(ctx context.Context, id uuid.UUID, userID uuid.
 
 func (r *Repository) GetUserTrains(ctx context.Context, userID uuid.UUID) ([]*TrainDB, error) {
 	query, args, err := sq.
-		Select("t.id", "t.title", "t.type", "t.duration", "t.is_public", "t.difficulty", "t.calories", "t.created_by", "t.created_at").
+		Select("t.id", "t.title", "t.type", "t.duration", "t.is_public", "t.difficulty", "t.calories", "t.created_by", "t.created_at", "t.image_path").
 		From("trains t").
 		Join("user_trains ut ON ut.train_id = t.id").
 		Where(sq.Eq{"ut.user_id": userID}).
@@ -155,7 +155,7 @@ func (r *Repository) GetUserTrains(ctx context.Context, userID uuid.UUID) ([]*Tr
 	trains := make([]*TrainDB, 0)
 	for rows.Next() {
 		var t TrainDB
-		if err := rows.Scan(&t.ID, &t.Title, &t.Type, &t.Duration, &t.IsPublic, &t.Difficulty, &t.Calories, &t.CreatedBy, &t.CreatedAt); err != nil {
+		if err := rows.Scan(&t.ID, &t.Title, &t.Type, &t.Duration, &t.IsPublic, &t.Difficulty, &t.Calories, &t.CreatedBy, &t.CreatedAt, &t.ImagePath); err != nil {
 			return nil, err
 		}
 		trains = append(trains, &t)
