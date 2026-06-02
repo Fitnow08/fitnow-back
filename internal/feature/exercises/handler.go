@@ -3,8 +3,12 @@ package exercises
 import (
 	"context"
 	"github.com/Sanchir01/fitnow/internal/models/domain"
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+	"io"
 	"log/slog"
 	"net/http"
+	"path/filepath"
 
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
@@ -16,6 +20,7 @@ import (
 type ExerciseService interface {
 	GetAllExercises(ctx context.Context) ([]domain.Exercise, error)
 	CreateExercise(ctx context.Context, title, desc string) (*domain.Exercise, error)
+	SaveExerciseVideo(ctx context.Context, exercise uuid.UUID, ext, contentType string, size int64, r io.Reader) error
 }
 
 type Handler struct {
@@ -108,4 +113,71 @@ func (h *Handler) CreateExercise(w http.ResponseWriter, r *http.Request) {
 	}
 	render.Status(r, http.StatusCreated)
 	render.JSON(w, r, exercise)
+}
+
+var allowedVideoTypes = map[string]struct{}{
+	"video/mp4":  {},
+	"video/webm": {},
+	"video/avi":  {},
+}
+
+func (h *Handler) AddExerciseVideo(w http.ResponseWriter, r *http.Request) {
+	const op = "Exercises.Handler.AddExerciseVideo"
+	log := h.log.With("op", op)
+
+	idStr := chi.URLParam(r, "id")
+	trainID, err := uuid.Parse(idStr)
+	if err != nil {
+		log.Error("failed to parse id from request", slog.Any("id", idStr))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid id"))
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, 40<<20)
+	if err := r.ParseMultipartForm(30 << 20); err != nil {
+		log.Error("failed to parse multipart form", slog.Any("id", idStr))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid multipart form"))
+		return
+	}
+	file, header, err := r.FormFile("video")
+	if err != nil {
+		log.Error("failed to get file from form exercises", slog.Any("id", idStr))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("video field required"))
+		return
+	}
+	defer file.Close()
+
+	buf := make([]byte, 512)
+	n, err := file.Read(buf)
+	if err != nil && err != io.EOF {
+		log.Error("failed to read file head", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid file"))
+		return
+	}
+	contentType := http.DetectContentType(buf[:n])
+	if _, ok := allowedVideoTypes[contentType]; !ok {
+		log.Error("unsupported content type", slog.String("detected", contentType))
+		render.Status(r, http.StatusUnsupportedMediaType)
+		render.JSON(w, r, api.Error("unsupported video format"))
+		return
+	}
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		log.Error("failed to seek file", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, api.Error("internal error"))
+		return
+	}
+
+	ext := filepath.Ext(header.Filename)
+	if err := h.service.SaveExerciseVideo(r.Context(), trainID, ext, contentType, header.Size, file); err != nil {
+		log.Error("failed to upload program video", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, api.Error("failed to upload program video"))
+		return
+	}
+	render.Status(r, http.StatusCreated)
+	render.JSON(w, r, "ok")
 }

@@ -9,19 +9,24 @@ import (
 )
 
 type S3 struct {
-	TrainBucket   *connect.Bucket
-	ProgramBucket *connect.Bucket
+	TrainBucket     *connect.Bucket
+	ProgramBucket   *connect.Bucket
+	ExercisesBucket *connect.Bucket
 }
 
 func NewS3(ctx context.Context, client *minio.Client, cfg *config.Config) (*S3, error) {
 	publicURL := cfg.MINIOS3.PublicBaseURL()
-	trainBucket, err := connect.NewBucket(ctx, client, constants.TrainsBacket, publicURL)
+	trainBucket, err := connect.NewBucket(ctx, client, constants.TrainsBucket, publicURL)
 	if err != nil {
 		return nil, err
 	}
-	programBucket, err := connect.NewBucket(ctx, client, constants.ProgramsBacket, publicURL)
+	programBucket, err := connect.NewBucket(ctx, client, constants.ProgramsBucket, publicURL)
 	if err != nil {
 		return nil, err
 	}
-	return &S3{TrainBucket: trainBucket, ProgramBucket: programBucket}, nil
+	exerciseBucket, err := connect.NewBucket(ctx, client, constants.ExercisesBucket, publicURL)
+	if err != nil {
+		return nil, err
+	}
+	return &S3{TrainBucket: trainBucket, ProgramBucket: programBucket, ExercisesBucket: exerciseBucket}, nil
 }

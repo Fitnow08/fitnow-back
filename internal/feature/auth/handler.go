@@ -232,4 +232,29 @@ func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, "ok")
 }
 
-func (h *Handler) ConfirmResetPassword(w http.ResponseWriter, r *http.Request) {}
+func (h *Handler) ConfirmResetPassword(w http.ResponseWriter, r *http.Request) {
+	const op = "Auth.Handler.ConfirmResetPassword"
+	log := h.log.With(slog.String("op", op))
+	var req ConfirmResetPasswordRequest
+	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		log.Error("failed to decode body verify account")
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, "invalid request body")
+		return
+	}
+	if err := h.validator.Struct(req); err != nil {
+		log.Error("invalid request", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid request body"))
+		return
+	}
+	err := h.autgservice.ConfirmResetPassword(r.Context(), req.Email, req.NewPassword, req.Code)
+	if err != nil {
+		log.Error("failed to confirm reset password", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, "failed confirm reset password")
+		return
+	}
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, "ok")
+}

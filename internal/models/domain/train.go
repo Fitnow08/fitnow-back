@@ -23,4 +23,15 @@ type Exercise struct {
 	ID          uuid.UUID `json:"id"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
+	VideoURL    string    `json:"video_url"`
+}
+type TrainExercise struct {
+	ID          uuid.UUID `json:"exercise_id"`
+	Title       string    `json:"exercise_title"`
+	Description string    `json:"description"`
+	VideoURL    string    `json:"video_url"`
+	Difficulty  string    `json:"difficulty"`
+	Steps       int       `json:"steps"`
+	Sets        int       `json:"sets"`
+	Position    int       `json:"position"`
 }

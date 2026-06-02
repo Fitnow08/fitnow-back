@@ -103,7 +103,7 @@ func (h *Handler) AddProgramImage(w http.ResponseWriter, r *http.Request) {
 	}
 	file, header, err := r.FormFile("image")
 	if err != nil {
-		log.Error("failed to get file from form", slog.Any("id", idStr))
+		log.Error("failed to get file from form", slog.Any("id", idStr), "err", err.Error())
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, api.Error("image field required"))
 		return

@@ -10,6 +10,7 @@ import (
 	"github.com/Sanchir01/fitnow/internal/feature/rating"
 	"github.com/Sanchir01/fitnow/internal/feature/train"
 	traincategory "github.com/Sanchir01/fitnow/internal/feature/train-category"
+	"github.com/Sanchir01/fitnow/internal/feature/user"
 	"github.com/gorilla/websocket"
 	"log/slog"
 )
@@ -24,6 +25,7 @@ type Handlers struct {
 	ChatHandler            *chat.Handler
 	ProgramHandler         *program.Handler
 	ProgramCategoryHandler *programcategory.Handler
+	UserHandler            *user.Handler
 }
 
 func NewHandlers(l *slog.Logger, srv *Services, wsUpd *websocket.Upgrader) *Handlers {
@@ -37,5 +39,6 @@ func NewHandlers(l *slog.Logger, srv *Services, wsUpd *websocket.Upgrader) *Hand
 		ChatHandler:            chat.NewHandler(l, wsUpd),
 		ProgramHandler:         program.NewHandler(l, srv.ProgramService),
 		ProgramCategoryHandler: programcategory.NewHandler(l, srv.ProgramCategoryService),
+		UserHandler:            user.NewHandler(l, srv.UserService),
 	}
 }

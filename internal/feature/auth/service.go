@@ -9,18 +9,13 @@ import (
 	"log/slog"
 )
 
-type AuthRepository interface {
-	CreateUser(ctx context.Context, email, title string, password []byte) (*UserDB, error)
-	UserByEmail(ctx context.Context, email string) (*UserDB, error)
-}
 type Service struct {
-	log            *slog.Logger
-	authrepository AuthRepository
-	authClient     *authgrpc.AuthClient
+	log        *slog.Logger
+	authClient *authgrpc.AuthClient
 }
 
-func NewService(log *slog.Logger, authrepository AuthRepository, authClient *authgrpc.AuthClient) *Service {
-	return &Service{log: log, authrepository: authrepository, authClient: authClient}
+func NewService(log *slog.Logger, authClient *authgrpc.AuthClient) *Service {
+	return &Service{log: log, authClient: authClient}
 }
 func (s *Service) Register(ctx context.Context, req RegisterRequest) error {
 	const op = "Auth.Service.Register"
@@ -51,6 +46,7 @@ func (s *Service) Login(ctx context.Context, email, password string) (*domain.Us
 		ID:           dataid,
 		Email:        data.Email,
 		Title:        data.Title,
+		Role:         data.Role,
 		AccessToken:  data.RefreshToken,
 		RefreshToken: data.RefreshToken,
 	}, nil
@@ -90,6 +86,7 @@ func (s *Service) VerifyAccount(ctx context.Context, email string, code int64) (
 		uuidac,
 		data.Email,
 		data.Title,
+		data.Role,
 		data.RefreshToken,
 		data.AccessToken,
 	}, nil

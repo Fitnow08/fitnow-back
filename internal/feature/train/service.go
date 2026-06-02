@@ -6,6 +6,7 @@ import (
 	"github.com/Sanchir01/fitnow/internal/models/domain"
 	"github.com/Sanchir01/fitnow/pkg/db/connect"
 	"github.com/google/uuid"
+	"golang.org/x/sync/errgroup"
 	"io"
 	"log/slog"
 )
@@ -20,6 +21,8 @@ type TrainRepository interface {
 	AddUserTrain(ctx context.Context, userID, trainID uuid.UUID) error
 	RemoveUserTrain(ctx context.Context, userID, trainID uuid.UUID) error
 	UpdateTrainImageUrl(ctx context.Context, trainID uuid.UUID, url string) error
+	AddTrainExercises(ctx context.Context, trainID uuid.UUID, exercises []TrainExerciseInput) error
+	GetTrainExercises(ctx context.Context, trainID uuid.UUID) ([]*TrainExerciseDB, error)
 }
 
 type Service struct {
@@ -102,6 +105,73 @@ func (s *Service) UploadTrainImage(ctx context.Context, trainID uuid.UUID, ext, 
 		return err
 	}
 	return nil
+}
+func (s *Service) UploadAllTrainExercises(ctx context.Context, trainID uuid.UUID, exercises []TrainExerciseInput) error {
+	const op = "Train.Service.UploadAllTrainExercises"
+	log := s.log.With("op", op)
+	err := s.trainRepository.AddTrainExercises(ctx, trainID, exercises)
+	if err != nil {
+		log.Error("fail to add train exercises", "err", err)
+		return err
+	}
+	return nil
+}
+func (s *Service) GetTrainExercises(ctx context.Context, trainID uuid.UUID) (*TrainAndExercises, error) {
+	const op = "Train.Service.GetTrainExercises"
+	log := s.log.With("op", op)
+
+	g, ctx := errgroup.WithContext(ctx)
+
+	var (
+		exer  []*TrainExerciseDB
+		train *TrainDB
+	)
+
+	g.Go(func() error {
+		var err error
+		exer, err = s.trainRepository.GetTrainExercises(ctx, trainID)
+		return err
+	})
+
+	g.Go(func() error {
+		var err error
+		train, err = s.trainRepository.GetTrainByID(ctx, trainID)
+		return err
+	})
+
+	if err := g.Wait(); err != nil {
+		log.Error("failed to get train data", "err", err.Error())
+		return nil, err
+	}
+	newexer := make([]domain.TrainExercise, 0, len(exer))
+	for _, ex := range exer {
+		newexer = append(newexer, domain.TrainExercise{
+			ID:          ex.ID,
+			Title:       ex.Title,
+			Difficulty:  ex.Difficulty,
+			VideoURL:    ex.VideoURL,
+			Description: ex.Description,
+			Sets:        ex.Sets,
+			Position:    ex.Position,
+			Steps:       ex.Steps,
+		})
+	}
+	return &TrainAndExercises{
+		Train: domain.Train{
+			ID:         train.ID,
+			Title:      train.Title,
+			Type:       train.Type,
+			Duration:   train.Duration,
+			IsPublic:   train.IsPublic,
+			Difficulty: train.Difficulty,
+			CategoryId: train.CategoryId,
+			Calories:   train.Calories,
+			ImageURL:   train.ImagePath,
+			CreatedAt:  train.CreatedAt,
+			CreatedBy:  train.CreatedBy,
+		},
+		Exercises: newexer,
+	}, nil
 }
 
 func (s *Service) dbToDomain(t *TrainDB) *domain.Train {

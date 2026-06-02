@@ -137,3 +137,22 @@ func (c *AuthClient) ConfirmResetPassword(ctx context.Context, email, newPasswor
 	}
 	return resp, nil
 }
+
+func (c *AuthClient) GetAllUsers(ctx context.Context) (*authv1.GetAllUsersResponse, error) {
+	const op = "AuthClient.GetAllUsers"
+
+	resp, err := c.AuthServiceClient.GetAllUsers(ctx, &authv1.GetAllUsersRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	return resp, nil
+}
+
+func (c *AuthClient) GetUserById(ctx context.Context, req *authv1.GetUserByIdRequest) (*authv1.GetUserByIdResponse, error) {
+	const op = "AuthClient.GetUserById"
+	resp, err := c.AuthServiceClient.GetUserById(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	return resp, nil
+}

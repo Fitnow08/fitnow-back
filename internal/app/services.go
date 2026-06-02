@@ -10,6 +10,7 @@ import (
 	"github.com/Sanchir01/fitnow/internal/feature/rating"
 	"github.com/Sanchir01/fitnow/internal/feature/train"
 	traincategory "github.com/Sanchir01/fitnow/internal/feature/train-category"
+	"github.com/Sanchir01/fitnow/internal/feature/user"
 	"log/slog"
 )
 
@@ -22,17 +23,19 @@ type Services struct {
 	CommentService         *comment.Service
 	ProgramService         *program.Service
 	ProgramCategoryService *programcategory.Service
+	UserService            *user.Service
 }
 
 func NewServices(repo *Repositories, s3minio *S3, authClient *authgrpc.AuthClient, l *slog.Logger) *Services {
 	return &Services{
-		AuthService:            auth.NewService(l, repo.AuthRepository, authClient),
+		AuthService:            auth.NewService(l, authClient),
 		TrainService:           train.NewService(l, s3minio.TrainBucket, repo.TrainRepository),
-		ExercisesService:       exercises.NewService(l, repo.ExercisesRepository),
+		ExercisesService:       exercises.NewService(l, repo.ExercisesRepository, s3minio.ExercisesBucket),
 		TrainCategoryService:   traincategory.NewService(l, repo.TrainCategoryRepository),
 		RatingService:          rating.NewService(l, repo.RatingRepository),
 		CommentService:         comment.NewService(l, repo.CommentRepository),
 		ProgramService:         program.NewService(l, repo.ProgramRepository, s3minio.ProgramBucket),
 		ProgramCategoryService: programcategory.NewService(l, repo.ProgramCategoryRepository),
+		UserService:            user.NewService(l, authClient),
 	}
 }

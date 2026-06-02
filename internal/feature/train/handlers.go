@@ -28,6 +28,8 @@ type TrainService interface {
 	AddUserTrain(ctx context.Context, userID, trainID uuid.UUID) error
 	RemoveUserTrain(ctx context.Context, userID, trainID uuid.UUID) error
 	UploadTrainImage(ctx context.Context, trainID uuid.UUID, ext, contentType string, size int64, r io.Reader) error
+	UploadAllTrainExercises(ctx context.Context, trainID uuid.UUID, exercises []TrainExerciseInput) error
+	GetTrainExercises(ctx context.Context, trainID uuid.UUID) (*TrainAndExercises, error)
 }
 
 type Handler struct {
@@ -429,4 +431,65 @@ func (h *Handler) UploadTrainImage(w http.ResponseWriter, r *http.Request) {
 	}
 	render.Status(r, http.StatusCreated)
 	render.JSON(w, r, "ok")
+}
+
+func (h *Handler) UploadAllTrainExercises(w http.ResponseWriter, r *http.Request) {
+	const op = "Train.Handler.UploadAllTrainExercises"
+	log := h.log.With("op", op)
+
+	id := chi.URLParam(r, "id")
+	trainid, err := uuid.Parse(id)
+	if err != nil {
+		log.Error("error parsing program id", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid id"))
+		return
+	}
+	var req AddTrainExerciseRequest
+	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		log.Error("failed to decode body")
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid request body"))
+		return
+	}
+	if err := h.validator.Struct(req); err != nil {
+		log.Error("invalid request", slog.Any("err", err))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid request body"))
+		return
+	}
+
+	if err := h.trainservice.UploadAllTrainExercises(r.Context(), trainid, req.Exercises); err != nil {
+		log.Error("failed to upload train exercises", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, api.Error("failed to upload train exercises"))
+		return
+	}
+
+	render.Status(r, http.StatusCreated)
+	render.JSON(w, r, "ok")
+}
+
+func (h *Handler) GetTrainAndExercises(w http.ResponseWriter, r *http.Request) {
+	const op = "Train.Handler.GetTrainAndExercises"
+
+	log := h.log.With("op", op)
+	id := chi.URLParam(r, "id")
+	trainid, err := uuid.Parse(id)
+	if err != nil {
+		log.Error("error parsing program id", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid id"))
+		return
+	}
+	data, err := h.trainservice.GetTrainExercises(r.Context(), trainid)
+	if err != nil {
+		log.Error("failed to get train exercises", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, "failed to fetch train exercises")
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, data)
 }

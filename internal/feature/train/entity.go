@@ -1,6 +1,7 @@
 package train
 
 import (
+	"github.com/Sanchir01/fitnow/internal/models/domain"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"time"
@@ -46,6 +47,20 @@ type CreateExerciseRequest struct {
 type AllTrainsParams struct {
 	Page  uint64 `json:"page"`
 	Limit uint64 `json:"size"`
+}
+type TrainExerciseInput struct {
+	ExerciseID uuid.UUID `json:"exercise_id" validate:"required"`
+	Steps      int       `json:"steps" validate:"required,min=1"`
+	Sets       int       `json:"sets" validate:"required,min=1"`
+	Position   int       `json:"position" validate:"required"`
+}
+type AddTrainExerciseRequest struct {
+	Exercises []TrainExerciseInput `json:"exercises" validate:"required,min=1,dive"`
+}
+
+type TrainAndExercises struct {
+	Train     domain.Train           `json:"train"`
+	Exercises []domain.TrainExercise `json:"exercises"`
 }
 
 func NewValidator() *validator.Validate {

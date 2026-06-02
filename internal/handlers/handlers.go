@@ -39,9 +39,8 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 		})
 		r.Route("/train", func(r chi.Router) {
 			r.Get("/", handlers.TrainHandler.GetAllTrains)
-			r.Get("/exercises", handlers.ExercisesHandler.GetAllExercises)
 			r.Get("/{id}", handlers.TrainHandler.GetTrainByID)
-
+			r.Get("/{id}/exercises", handlers.TrainHandler.GetTrainAndExercises)
 			r.Group(func(r chi.Router) {
 				r.Use(customMiddleware.AuthMiddleware(""))
 				r.Route("/{id}", func(r chi.Router) {
@@ -51,10 +50,12 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 						r.Post("/", handlers.RatingHandler.CreateTrainRating)
 						r.Put("/", handlers.RatingHandler.UpdateTrainRating)
 					})
+					r.Route("/exercises", func(r chi.Router) {
+						r.Post("/", handlers.TrainHandler.UploadAllTrainExercises)
+					})
 				})
 				r.Post("/", handlers.TrainHandler.CreateTrain)
 
-				r.Post("/exercises", handlers.ExercisesHandler.CreateExercise)
 				r.Get("/me", handlers.TrainHandler.GetUserTrains)
 
 				r.Put("/{id}", handlers.TrainHandler.UpdateTrain)
@@ -79,6 +80,15 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 				r.Delete("/{id}", handlers.TrainCategoryHandler.DeleteTrainCategory)
 			})
 		})
+		r.Route("/exercises", func(r chi.Router) {
+			r.Group(func(r chi.Router) {
+				r.Use(customMiddleware.AuthMiddleware(""))
+				r.Post("/", handlers.ExercisesHandler.CreateExercise)
+				r.Post("/{id}/video", handlers.ExercisesHandler.AddExerciseVideo)
+				r.Get("/", handlers.TrainHandler.GetTrainAndExercises)
+			})
+			r.Get("/", handlers.ExercisesHandler.GetAllExercises)
+		})
 		r.Route("/program", func(r chi.Router) {
 			r.Get("/", handlers.ProgramHandler.GetAllPrograms)
 			r.Group(func(r chi.Router) {
@@ -93,6 +103,11 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 				r.Delete("/{id}", handlers.ProgramCategoryHandler.DeleteProgramCategory)
 			})
 		})
+		r.Route("/user", func(r chi.Router) {
+			r.Get("/{id}", handlers.UserHandler.GetUserById)
+
+			r.Get("/all", handlers.UserHandler.GetAllUsers)
+		})
 
 	})
 	r.Get("/swagger/*", httpSwagger.Handler(
@@ -104,7 +119,7 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 func StartCors(r *chi.Mux) {
 	allowedOrigin := os.Getenv("FRONTEND_URL")
 	if allowedOrigin == "" {
-		allowedOrigin = "http://localhost:3020"
+		allowedOrigin = "http://localhost:5173"
 	}
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{allowedOrigin},

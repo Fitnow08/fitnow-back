@@ -4,6 +4,10 @@ github.com/AfterShip/email-verifier v1.4.1 h1:vDmnqq680siSLw8rtiAYaqgmqYeW+AUoMf
 github.com/AfterShip/email-verifier v1.4.1/go.mod h1:AcFyA5b7X6L4l5dBuemWBSh8mq74nxkBTtoWgLOFrbw=
 github.com/Fitnow08/fitnow-proto v0.0.0-20260529005924-5c1d6767981a h1:b0X0a+p7cJS5ollHa9AAoQESfPDbA3ez+MYrWv4j3bM=
 github.com/Fitnow08/fitnow-proto v0.0.0-20260529005924-5c1d6767981a/go.mod h1:Y/PBYN29qmGtoY33JueQRQKMl17Z7YZXWW8n3fzRVXo=
+github.com/Fitnow08/fitnow-proto v0.0.0-20260601072713-80eb827e8618 h1:Cyznwjl3LXNDNcR8ri3FDeeC7fXtbMsOMe+NAnL6BG4=
+github.com/Fitnow08/fitnow-proto v0.0.0-20260601072713-80eb827e8618/go.mod h1:Y/PBYN29qmGtoY33JueQRQKMl17Z7YZXWW8n3fzRVXo=
+github.com/Fitnow08/fitnow-proto v0.0.0-20260601093949-a51d09560485 h1:xihJGYJvyFBd16M+8bAVPKF4Q2WwIa0GfM9BiZOqTU4=
+github.com/Fitnow08/fitnow-proto v0.0.0-20260601093949-a51d09560485/go.mod h1:Y/PBYN29qmGtoY33JueQRQKMl17Z7YZXWW8n3fzRVXo=
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
 github.com/Masterminds/squirrel v1.5.4 h1:uUcX/aBc8O7Fg9kaISIUsHXdKuqehiXAMQTYX8afzqM=

@@ -20,6 +20,17 @@ type ExerciseDB struct {
 	Description string    `db:"description"`
 }
 
+type TrainExerciseDB struct {
+	ID          uuid.UUID `db:"exercise_id"`
+	Title       string    `db:"exercise_title"`
+	Description string    `db:"description"`
+	VideoURL    string    `db:"video_url"`
+	Difficulty  string    `db:"difficulty"`
+	Steps       int       `db:"steps"`
+	Sets        int       `db:"sets"`
+	Position    int       `db:"position"`
+}
+
 func NewRepository(db *pgxpool.Pool, log *slog.Logger) *Repository {
 	return &Repository{db: db, log: log}
 }
@@ -249,4 +260,65 @@ func (r *Repository) UpdateTrainImageUrl(ctx context.Context, trainID uuid.UUID,
 		return err
 	}
 	return nil
+}
+
+func (r *Repository) AddTrainExercises(ctx context.Context, trainID uuid.UUID, exercises []TrainExerciseInput) error {
+	if len(exercises) == 0 {
+		return nil
+	}
+	b := sq.Insert(constants.TrainExercisesTableName).
+		Columns("train_id", "exercises_id", "steps", "sets", "position").
+		PlaceholderFormat(sq.Dollar)
+	for _, ex := range exercises {
+		b = b.Values(trainID, ex.ExerciseID, ex.Steps, ex.Sets, ex.Position)
+	}
+	query, args, err := b.ToSql()
+	if err != nil {
+		return err
+	}
+	if _, err := r.db.Exec(ctx, query, args...); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *Repository) GetTrainExercises(ctx context.Context, trainID uuid.UUID) ([]*TrainExerciseDB, error) {
+	query, args, err := sq.
+		Select(
+			"e.id AS exercise_id",
+			"e.title AS exercise_title",
+			"e.description",
+			"e.video_url",
+			"e.difficulty",
+			"te.steps",
+			"te.sets",
+			"te.position",
+		).
+		From(constants.TrainExercisesTableName + " te").
+		Join(constants.ExercisesTableName + " e ON e.id = te.exercises_id").
+		Where(sq.Eq{"te.train_id": trainID}).
+		OrderBy("te.position").
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+	rows, err := r.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	exercises := make([]*TrainExerciseDB, 0)
+	for rows.Next() {
+		var e TrainExerciseDB
+		if err := rows.Scan(&e.ID, &e.Title, &e.Description, &e.VideoURL, &e.Difficulty, &e.Steps, &e.Sets, &e.Position); err != nil {
+			return nil, err
+		}
+		exercises = append(exercises, &e)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return exercises, nil
 }
