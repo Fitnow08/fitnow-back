@@ -1,6 +1,7 @@
 package program
 
 import (
+	"github.com/Sanchir01/fitnow/internal/models/domain"
 	"github.com/google/uuid"
 	"time"
 )
@@ -30,4 +31,21 @@ type ProgramDB struct {
 type ProgramAndCountTrainDB struct {
 	ProgramDB
 	TrainsCount int64 `db:"trains_count"`
+}
+
+type ProgramTrainInput struct {
+	TrainId    uuid.UUID `json:"train_id" validate:"required,uuid"`
+	WeekNumber int       `json:"week_number" validate:"required"`
+	DayOfWeek  int       `json:"day_of_week" validate:"required"`
+	Position   int       `json:"position" validate:"required, minda=1"`
+}
+type AddProgramTrainsRequest struct {
+	Trains []ProgramTrainInput `json:"trains" validate:"required"`
+}
+
+type ProgramTrainDB struct {
+	domain.Train
+	WeekNumber int `db:"week_number" json:"week_number"`
+	DayOfWeek  int `db:"day_of_week" json:"day_of_week"`
+	Position   int `db:"position" json:"position"`
 }

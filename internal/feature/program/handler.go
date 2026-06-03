@@ -17,8 +17,10 @@ import (
 
 type ProgramService interface {
 	CreateProgram(ctx context.Context, title string, description string, weeks int, level Level, categoryID *uuid.UUID, user_id uuid.UUID) (*domain.Program, error)
-	GetAllProgramAndTrainsCount(ctx context.Context) ([]domain.ProgramAndTrainsCount, error)
+	GetAllProgramAndTrainsCount(ctx context.Context, categoryId uuid.UUID, search string) ([]domain.ProgramAndTrainsCount, error)
 	UploadProgramImage(ctx context.Context, programID uuid.UUID, ext, contentType string, size int64, r io.Reader) error
+	UploadAllProgramTrains(ctx context.Context, programId uuid.UUID, trains []ProgramTrainInput) error
+	GetProgramTrains(ctx context.Context, programID uuid.UUID) (*domain.ProgramAndTrain, error)
 }
 type Handler struct {
 	log       *slog.Logger
@@ -72,7 +74,15 @@ func (h *Handler) GetAllPrograms(w http.ResponseWriter, r *http.Request) {
 	const op = "Program.Handler.GetAllPrograms"
 	log := h.log.With(slog.String("op", op))
 
-	programs, err := h.service.GetAllProgramAndTrainsCount(r.Context())
+	query := r.URL.Query()
+	categoryId := query.Get("category_id")
+
+	categoryuuid, err := uuid.Parse(categoryId)
+	if err != nil {
+		categoryuuid = uuid.Nil
+	}
+	search := query.Get("search")
+	programs, err := h.service.GetAllProgramAndTrainsCount(r.Context(), categoryuuid, search)
 	if err != nil {
 		log.Error("failed to get all programs", slog.Any("err", err.Error()))
 		render.Status(r, http.StatusInternalServerError)
@@ -119,4 +129,66 @@ func (h *Handler) AddProgramImage(w http.ResponseWriter, r *http.Request) {
 	}
 	render.Status(r, http.StatusCreated)
 	render.JSON(w, r, "ok")
+}
+
+func (h *Handler) UploadAllProgramTrains(w http.ResponseWriter, r *http.Request) {
+	const op = "Program.Handler.UploadAllProgramTrains"
+	log := h.log.With(slog.String("op", op))
+
+	id := chi.URLParam(r, "id")
+	trainID, err := uuid.Parse(id)
+	if err != nil {
+		log.Error("failed to parse id from request", slog.Any("id", id))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid id"))
+		return
+	}
+
+	var req AddProgramTrainsRequest
+	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		log.Error("failed to decode body")
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid request body"))
+		return
+	}
+	if err := h.validator.Struct(req); err != nil {
+		log.Error("invalid request", slog.Any("err", err))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid request body"))
+		return
+	}
+
+	if err := h.service.UploadAllProgramTrains(r.Context(), trainID, req.Trains); err != nil {
+		log.Error("failed to upload program trains", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, render.M{"status": "failed upload program trains"})
+		return
+	}
+	render.Status(r, http.StatusCreated)
+	render.JSON(w, r, "ok")
+}
+
+func (h *Handler) GetProgramsTrains(w http.ResponseWriter, r *http.Request) {
+	const op = "Program.Handler.GetProgramsTrains"
+	log := h.log.With(slog.String("op", op))
+
+	id := chi.URLParam(r, "id")
+	programuuid, err := uuid.Parse(id)
+	if err != nil {
+		log.Error("failed to parse id from request", slog.Any("id", id), "err", err.Error())
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid id"))
+		return
+	}
+	data, err := h.service.GetProgramTrains(r.Context(), programuuid)
+	if err != nil {
+		log.Error("failed to get program trains", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, render.M{"status": "failed get program trains"})
+		return
+	}
+
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, data)
+
 }

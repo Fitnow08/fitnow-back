@@ -77,9 +77,25 @@ func (h *Handler) GetAllTrains(w http.ResponseWriter, r *http.Request) {
 			limit = 100
 		}
 	}
+	categoryID := uuid.Nil
+
+	if id := q.Get("category_id"); id != "" {
+		parsedID, err := uuid.Parse(id)
+		if err != nil {
+			render.Status(r, http.StatusBadRequest)
+			render.JSON(w, r, render.M{
+				"error": "invalid category_id",
+			})
+			return
+		}
+		categoryID = parsedID
+	}
+	search := q.Get("search")
 	allTrainsParams := AllTrainsParams{
-		Page:  uint64(page),
-		Limit: uint64(limit),
+		Page:       uint64(page),
+		Limit:      uint64(limit),
+		CategoryId: categoryID,
+		Text:       search,
 	}
 	trains, err := h.trainservice.GetAllPublicTrains(r.Context(), allTrainsParams)
 	if err != nil {

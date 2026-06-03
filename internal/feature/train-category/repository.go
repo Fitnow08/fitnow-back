@@ -21,7 +21,6 @@ func NewRepository(db *pgxpool.Pool, log *slog.Logger) *Repository {
 func (r *Repository) GetAllTrainCategory(ctx context.Context) ([]TrainCategoryDB, error) {
 	query, args, err := sq.Select("id", "title", "created_at", "updated_at", "version").
 		From("train_category").
-		Limit(3).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
@@ -40,6 +39,7 @@ func (r *Repository) GetAllTrainCategory(ctx context.Context) ([]TrainCategoryDB
 		}
 		categories = append(categories, category)
 	}
+	slog.Info("repos train category count", len(categories))
 	return categories, nil
 }
 

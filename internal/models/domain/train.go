@@ -35,3 +35,15 @@ type TrainExercise struct {
 	Sets        int       `json:"sets"`
 	Position    int       `json:"position"`
 }
+
+type ProgramTrains struct {
+	Train
+	WeekNumber int `json:"week_number"`
+	DayOfWeek  int `json:"day_of_week"`
+	Position   int `json:"position"`
+}
+
+type ProgramAndTrain struct {
+	Program ProgramTrains   `json:"program"`
+	Trains  []ProgramTrains `json:"trains"`
+}

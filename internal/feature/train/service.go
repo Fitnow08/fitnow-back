@@ -57,8 +57,11 @@ func (s *Service) GetTrainByID(ctx context.Context, id uuid.UUID) (*domain.Train
 }
 
 func (s *Service) CreateTrain(ctx context.Context, req CreateTrainRequest, userID uuid.UUID) (*domain.Train, error) {
+	const op = "Train.Service.CreateTrain"
+	log := s.log.With(slog.String("op", op))
 	t, err := s.trainRepository.CreateTrain(ctx, req, userID)
 	if err != nil {
+		log.Error(err.Error())
 		return nil, err
 	}
 	return s.dbToDomain(t), nil
@@ -149,7 +152,7 @@ func (s *Service) GetTrainExercises(ctx context.Context, trainID uuid.UUID) (*Tr
 			ID:          ex.ID,
 			Title:       ex.Title,
 			Difficulty:  ex.Difficulty,
-			VideoURL:    ex.VideoURL,
+			VideoURL:    s.s3.PublicCustomURL("exercises", ex.VideoURL),
 			Description: ex.Description,
 			Sets:        ex.Sets,
 			Position:    ex.Position,
@@ -166,7 +169,7 @@ func (s *Service) GetTrainExercises(ctx context.Context, trainID uuid.UUID) (*Tr
 			Difficulty: train.Difficulty,
 			CategoryId: train.CategoryId,
 			Calories:   train.Calories,
-			ImageURL:   train.ImagePath,
+			ImageURL:   s.s3.PublicURL(train.ImagePath),
 			CreatedAt:  train.CreatedAt,
 			CreatedBy:  train.CreatedBy,
 		},

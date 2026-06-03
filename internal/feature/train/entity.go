@@ -23,12 +23,13 @@ type TrainDB struct {
 	Version    int64     `db:"version"`
 }
 type CreateTrainRequest struct {
-	Title      string `json:"title" validate:"required"`
-	Type       string `json:"type" validate:"required,oneof=strength cardio stretching"`
-	Duration   int64  `json:"duration" validate:"required,min=1"`
-	IsPublic   bool   `json:"is_public"`
-	Difficulty string `json:"difficulty" validate:"required,oneof=easy medium hard"`
-	Calories   int64  `json:"calories" validate:"required,min=0"`
+	Title      string    `json:"title" validate:"required"`
+	Type       string    `json:"type" validate:"required,oneof=strength cardio stretching"`
+	Duration   int64     `json:"duration" validate:"required,min=1"`
+	IsPublic   bool      `json:"is_public"`
+	Difficulty string    `json:"difficulty" validate:"required,oneof=easy medium hard"`
+	Calories   int64     `json:"calories" validate:"required,min=0"`
+	CategoryId uuid.UUID `json:"category_id" validate:"required,uuid"`
 }
 
 type UpdateTrainRequest struct {
@@ -45,8 +46,10 @@ type CreateExerciseRequest struct {
 	Description string `json:"description"`
 }
 type AllTrainsParams struct {
-	Page  uint64 `json:"page"`
-	Limit uint64 `json:"size"`
+	Page       uint64    `json:"page"`
+	Limit      uint64    `json:"size"`
+	CategoryId uuid.UUID `json:"category_id"`
+	Text       string    `json:"text"`
 }
 type TrainExerciseInput struct {
 	ExerciseID uuid.UUID `json:"exercise_id" validate:"required"`

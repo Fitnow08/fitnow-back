@@ -95,6 +95,11 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 				r.Use(customMiddleware.AuthMiddleware(""))
 				r.Post("/", handlers.ProgramHandler.CreateProgram)
 				r.Post("/{id}/image", handlers.ProgramHandler.AddProgramImage)
+
+				r.Route("/{id}/trains", func(r chi.Router) {
+					r.Post("/", handlers.ProgramHandler.UploadAllProgramTrains)
+					r.Get("/", handlers.ProgramHandler.GetProgramsTrains)
+				})
 			})
 			r.Route("/category", func(r chi.Router) {
 				r.Get("/", handlers.ProgramCategoryHandler.GetAllProgramCategory)

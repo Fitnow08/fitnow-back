@@ -15,6 +15,7 @@ type MiniS3Interface interface {
 	Delete(ctx context.Context, key string) error
 	Download(ctx context.Context, key string) (io.ReadCloser, error)
 	PresignedGetURL(ctx context.Context, key string, ttl time.Duration) (*url.URL, error)
+	PublicCustomURL(name, key string) string
 	PublicURL(key string) string
 }
 type Bucket struct {
@@ -68,6 +69,9 @@ func (b *Bucket) PublicURL(key string) string {
 		return ""
 	}
 	return fmt.Sprintf("%s/%s/%s", b.publicURL, b.name, key)
+}
+func (b *Bucket) PublicCustomURL(name, key string) string {
+	return fmt.Sprintf("%s/%s/%s", b.publicURL, name, key)
 }
 
 func (b *Bucket) Upload(ctx context.Context, key string, r io.Reader, size int64, contentType string) error {

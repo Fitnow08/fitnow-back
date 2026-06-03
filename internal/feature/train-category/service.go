@@ -32,7 +32,6 @@ func (s *Service) GetAllTrainCategory(ctx context.Context) ([]TrainCategoryDB, e
 		log.Error("fail to get all train category")
 		return nil, err
 	}
-	log.Info("success to get all train category")
 	return category, nil
 }
 
@@ -45,7 +44,6 @@ func (s *Service) CreateTrainCategory(ctx context.Context, title string) (*Train
 		log.Error("fail to create train category")
 		return nil, err
 	}
-	log.Info("success to create train category")
 	return category, nil
 }
 func (s *Service) UpdateTrainCategory(ctx context.Context, id uuid.UUID, title string) (*TrainCategoryDB, error) {
@@ -57,7 +55,6 @@ func (s *Service) UpdateTrainCategory(ctx context.Context, id uuid.UUID, title s
 		log.Error("fail to update train category")
 		return nil, err
 	}
-	log.Info("success to update train category")
 	return category, nil
 }
 func (s *Service) DeleteTrainCategory(ctx context.Context, id uuid.UUID) error {
@@ -68,6 +65,5 @@ func (s *Service) DeleteTrainCategory(ctx context.Context, id uuid.UUID) error {
 		log.Error("fail to delete train category")
 		return err
 	}
-	log.Info("success to delete train category")
 	return nil
 }

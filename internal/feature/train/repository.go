@@ -37,14 +37,24 @@ func NewRepository(db *pgxpool.Pool, log *slog.Logger) *Repository {
 
 func (r *Repository) GetAllPublicTrains(ctx context.Context, param AllTrainsParams) ([]*TrainDB, error) {
 	offset := (param.Page - 1) * param.Limit
-	query, args, err := sq.
-		Select("id", "title", "type", "duration", "is_public", "difficulty", "calories", "created_by", "created_at", "version", "image_path").
+	builder := sq.
+		Select("id", "title", "type", "duration", "is_public", "difficulty", "calories", "created_by", "created_at", "version", "image_path", "category_id").
 		From("trains").
 		Where(sq.Eq{"is_public": true}).
 		Limit(param.Limit).
-		Offset(offset).
-		PlaceholderFormat(sq.Dollar).
-		ToSql()
+		Offset(offset)
+
+	if param.CategoryId != uuid.Nil {
+		builder = builder.Where(sq.Eq{"category_id": param.CategoryId})
+	}
+	if param.Text != "" {
+		builder = builder.Where(sq.Or{
+			sq.ILike{"title": "%" + param.Text + "%"},
+			sq.ILike{"description": "%" + param.Text + "%"},
+		})
+	}
+
+	query, args, err := builder.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +67,7 @@ func (r *Repository) GetAllPublicTrains(ctx context.Context, param AllTrainsPara
 	var trains []*TrainDB
 	for rows.Next() {
 		var t TrainDB
-		if err := rows.Scan(&t.ID, &t.Title, &t.Type, &t.Duration, &t.IsPublic, &t.Difficulty, &t.Calories, &t.CreatedBy, &t.CreatedAt, &t.Version, &t.ImagePath); err != nil {
+		if err := rows.Scan(&t.ID, &t.Title, &t.Type, &t.Duration, &t.IsPublic, &t.Difficulty, &t.Calories, &t.CreatedBy, &t.CreatedAt, &t.Version, &t.ImagePath, &t.CategoryId); err != nil {
 			return nil, err
 		}
 		trains = append(trains, &t)
@@ -85,8 +95,8 @@ func (r *Repository) GetTrainByID(ctx context.Context, id uuid.UUID) (*TrainDB, 
 func (r *Repository) CreateTrain(ctx context.Context, req CreateTrainRequest, userID uuid.UUID) (*TrainDB, error) {
 	query, args, err := sq.
 		Insert("trains").
-		Columns("title", "type", "duration", "is_public", "difficulty", "calories", "created_by").
-		Values(req.Title, req.Type, req.Duration, req.IsPublic, req.Difficulty, req.Calories, userID).
+		Columns("title", "type", "duration", "is_public", "difficulty", "calories", "created_by", "category_id").
+		Values(req.Title, req.Type, req.Duration, req.IsPublic, req.Difficulty, req.Calories, userID, req.CategoryId).
 		Suffix("RETURNING id, title, type, duration, is_public, difficulty, calories, created_by, created_at, image_path").
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
