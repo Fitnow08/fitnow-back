@@ -8,6 +8,8 @@ github.com/Fitnow08/fitnow-proto v0.0.0-20260601072713-80eb827e8618 h1:Cyznwjl3L
 github.com/Fitnow08/fitnow-proto v0.0.0-20260601072713-80eb827e8618/go.mod h1:Y/PBYN29qmGtoY33JueQRQKMl17Z7YZXWW8n3fzRVXo=
 github.com/Fitnow08/fitnow-proto v0.0.0-20260601093949-a51d09560485 h1:xihJGYJvyFBd16M+8bAVPKF4Q2WwIa0GfM9BiZOqTU4=
 github.com/Fitnow08/fitnow-proto v0.0.0-20260601093949-a51d09560485/go.mod h1:Y/PBYN29qmGtoY33JueQRQKMl17Z7YZXWW8n3fzRVXo=
+github.com/Fitnow08/fitnow-proto v0.0.0-20260607112418-84fdfdf9bfd0 h1:kGPoRAr7cYhy3chCAX1/gzd8PRbc8dIvHsRnfPRZi34=
+github.com/Fitnow08/fitnow-proto v0.0.0-20260607112418-84fdfdf9bfd0/go.mod h1:Y/PBYN29qmGtoY33JueQRQKMl17Z7YZXWW8n3fzRVXo=
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
 github.com/Masterminds/squirrel v1.5.4 h1:uUcX/aBc8O7Fg9kaISIUsHXdKuqehiXAMQTYX8afzqM=

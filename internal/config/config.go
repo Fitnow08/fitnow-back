@@ -19,7 +19,8 @@ type Config struct {
 	Clients    Clients    `yaml:"clients"`
 }
 type Clients struct {
-	Auth Client `yaml:"auth_client"`
+	Auth          Client `yaml:"auth_client"`
+	CatalogClient Client `yaml:"catalog_client"`
 }
 type Client struct {
 	Address  string        `yaml:"address"`
@@ -56,6 +57,7 @@ func (m Minio) PublicBaseURL() string {
 	}
 	return fmt.Sprintf("%s://%s", scheme, m.URL)
 }
+
 type PrimaryDB struct {
 	Host        string `yaml:"host"`
 	Port        string `yaml:"port"`

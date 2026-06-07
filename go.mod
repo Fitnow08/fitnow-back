@@ -22,7 +22,7 @@ require (
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-20250425153114-8976f5be98c1.1 // indirect
-	github.com/Fitnow08/fitnow-proto v0.0.0-20260601093949-a51d09560485 // indirect
+	github.com/Fitnow08/fitnow-proto v0.0.0-20260607112418-84fdfdf9bfd0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect

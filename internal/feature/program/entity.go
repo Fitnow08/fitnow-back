@@ -1,10 +1,24 @@
 package program
 
 import (
+	programv1 "github.com/Fitnow08/fitnow-proto/pkg/gen/go/v1/program"
 	"github.com/Sanchir01/fitnow/internal/models/domain"
 	"github.com/google/uuid"
 	"time"
 )
+
+func LevelToProto(level Level) programv1.DifficultyLevel {
+	switch level {
+	case Easy:
+		return programv1.DifficultyLevel_DIFFICULTY_LEVEL_EASY
+	case Medium:
+		return programv1.DifficultyLevel_DIFFICULTY_LEVEL_MEDIUM
+	case Hard:
+		return programv1.DifficultyLevel_DIFFICULTY_LEVEL_HARD
+	default:
+		return programv1.DifficultyLevel_DIFFICULTY_LEVEL_UNSPECIFIED
+	}
+}
 
 type CreateProgramRequest struct {
 	Title       string     `json:"title" validate:"required,max=255"`

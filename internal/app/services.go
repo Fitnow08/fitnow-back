@@ -1,7 +1,6 @@
 package app
 
 import (
-	authgrpc "github.com/Sanchir01/fitnow/internal/clients/grpc/auth"
 	"github.com/Sanchir01/fitnow/internal/feature/auth"
 	"github.com/Sanchir01/fitnow/internal/feature/comment"
 	"github.com/Sanchir01/fitnow/internal/feature/exercises"
@@ -26,16 +25,16 @@ type Services struct {
 	UserService            *user.Service
 }
 
-func NewServices(repo *Repositories, s3minio *S3, authClient *authgrpc.AuthClient, l *slog.Logger) *Services {
+func NewServices(repo *Repositories, s3minio *S3, clients *Clients, l *slog.Logger) *Services {
 	return &Services{
-		AuthService:            auth.NewService(l, authClient),
+		AuthService:            auth.NewService(l, clients.AuthClient),
 		TrainService:           train.NewService(l, s3minio.TrainBucket, repo.TrainRepository),
 		ExercisesService:       exercises.NewService(l, repo.ExercisesRepository, s3minio.ExercisesBucket),
 		TrainCategoryService:   traincategory.NewService(l, repo.TrainCategoryRepository),
 		RatingService:          rating.NewService(l, repo.RatingRepository),
 		CommentService:         comment.NewService(l, repo.CommentRepository),
-		ProgramService:         program.NewService(l, repo.ProgramRepository, s3minio.ProgramBucket),
+		ProgramService:         program.NewService(l, clients.ProgramClient),
 		ProgramCategoryService: programcategory.NewService(l, repo.ProgramCategoryRepository),
-		UserService:            user.NewService(l, authClient),
+		UserService:            user.NewService(l, clients.AuthClient),
 	}
 }
