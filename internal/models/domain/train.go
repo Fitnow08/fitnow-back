@@ -44,6 +44,6 @@ type ProgramTrains struct {
 }
 
 type ProgramAndTrain struct {
-	Program ProgramTrains   `json:"program"`
+	Program Program         `json:"program"`
 	Trains  []ProgramTrains `json:"trains"`
 }

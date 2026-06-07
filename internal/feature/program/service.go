@@ -153,16 +153,20 @@ func (s *Service) GetProgramTrains(ctx context.Context, programID uuid.UUID) (*d
 	}
 
 	return &domain.ProgramAndTrain{
-		Program: domain.ProgramTrains{Train: domain.Train{
+		Program: domain.Program{
 			ID:         program.ID,
 			Title:      program.Title,
-			Difficulty: program.Difficult,
+			Difficult:  program.Difficult,
 			IsPublic:   program.IsPublic,
-			CategoryId: categoryID,
-			ImageURL:   s.s3.PublicURL(program.ImagePath),
+			CategoryID: &categoryID,
 			CreatedBy:  program.CreatedBy,
 			CreatedAt:  program.CreatedAt,
-		}},
+			UpdatedAt:  program.UpdatedAt,
+			Version:    program.Version,
+			Desc:       program.Desc,
+			Weeks:      program.Weeks,
+			ImageURL:   s.s3.PublicURL(program.ImagePath),
+		},
 		Trains: newtrains,
 	}, nil
 }

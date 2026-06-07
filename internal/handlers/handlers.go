@@ -45,7 +45,6 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 				r.Use(customMiddleware.AuthMiddleware(""))
 				r.Route("/{id}", func(r chi.Router) {
 					r.Post("/image", handlers.TrainHandler.UploadTrainImage)
-
 					r.Route("/ratings", func(r chi.Router) {
 						r.Post("/", handlers.RatingHandler.CreateTrainRating)
 						r.Put("/", handlers.RatingHandler.UpdateTrainRating)

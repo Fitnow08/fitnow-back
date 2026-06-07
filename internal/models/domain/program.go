@@ -13,7 +13,6 @@ type Program struct {
 	Difficult  string     `json:"difficulty"`
 	IsPublic   bool       `json:"is_public"`
 	CategoryID *uuid.UUID `json:"category_id"`
-	ImagePath  string     `json:"-"`
 	ImageURL   string     `json:"image_url"`
 	CreatedBy  uuid.UUID  `json:"-"`
 	CreatedAt  time.Time  `json:"created_at"`
