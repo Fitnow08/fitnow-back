@@ -93,6 +93,8 @@ func StartHttpHandlers(handlers *app.Handlers) http.Handler {
 			r.Group(func(r chi.Router) {
 				r.Use(customMiddleware.AuthMiddleware(""))
 				r.Post("/", handlers.ProgramHandler.CreateProgram)
+				r.Post("/kafka", handlers.ProgramHandler.CreateProgramToKafka)
+				r.Post("/import/excel", handlers.ProgramHandler.ImportProgramsExcel)
 				r.Post("/{id}/image", handlers.ProgramHandler.AddProgramImage)
 
 				r.Route("/{id}/trains", func(r chi.Router) {

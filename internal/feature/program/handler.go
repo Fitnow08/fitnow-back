@@ -16,11 +16,13 @@ import (
 )
 
 type ProgramService interface {
-	CreateProgram(ctx context.Context, title string, description string, weeks int, level Level, categoryID *uuid.UUID, user_id uuid.UUID) (*domain.Program, error)
+	CreateProgram(ctx context.Context, title string, description string, weeks int, level domain.Level, categoryID *uuid.UUID, user_id uuid.UUID) (*domain.Program, error)
 	GetAllProgramAndTrainsCount(ctx context.Context, categoryId uuid.UUID, search string) ([]domain.ProgramAndTrainsCount, error)
 	UploadProgramImage(ctx context.Context, programID uuid.UUID, ext, contentType string, size int64, r io.Reader) error
 	UploadAllProgramTrains(ctx context.Context, programId uuid.UUID, trains []ProgramTrainInput) error
 	GetProgramTrains(ctx context.Context, programID uuid.UUID) (*domain.ProgramAndTrain, error)
+	ImportProgramsFromExcel(ctx context.Context, r io.Reader, userID uuid.UUID) (int, error)
+	PublishProgramCreated(ctx context.Context, userID uuid.UUID, req CreateProgramRequest) error
 }
 type Handler struct {
 	log       *slog.Logger
@@ -191,4 +193,36 @@ func (h *Handler) GetProgramsTrains(w http.ResponseWriter, r *http.Request) {
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, data)
 
+}
+
+func (h *Handler) CreateProgramToKafka(w http.ResponseWriter, r *http.Request) {
+	const op = "Program.Handler.CreateProgramToKafka"
+	log := h.log.With(slog.String("op", op))
+
+	claims, err := auth.GetUserByHttpContext(r)
+	if err != nil {
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, api.Error("invalid token"))
+		return
+	}
+	var req CreateProgramRequest
+	if err := render.DecodeJSON(r.Body, &req); err != nil {
+		log.Error("failed to decode body send message to kafka", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, "invalid request body")
+		return
+	}
+	if err := h.validator.Struct(req); err != nil {
+		log.Error("invalid request", slog.Any("err", err.Error()))
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, api.Error("invalid request body"))
+		return
+	}
+	if err := h.service.PublishProgramCreated(r.Context(), claims.ID, req); err != nil {
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, render.M{"status": "failed create program"})
+		return
+	}
+	render.Status(r, http.StatusCreated)
+	render.JSON(w, r, "ok")
 }

@@ -17,6 +17,12 @@ type Config struct {
 	DB         PrimaryDB  `yaml:"database"`
 	MINIOS3    Minio      `yaml:"minio_s3"`
 	Clients    Clients    `yaml:"clients"`
+	Kafka      Kafka      `yaml:"kafka"`
+}
+type Kafka struct {
+	Brokers []string `yaml:"brokers"`
+	// PollInterval — период опроса outbox-таблицы воркером StartProcessEvents.
+	PollInterval time.Duration `yaml:"poll_interval" env-default:"1s"`
 }
 type Clients struct {
 	Auth          Client `yaml:"auth_client"`

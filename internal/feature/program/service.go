@@ -2,6 +2,9 @@ package program
 
 import (
 	"context"
+	"encoding/json"
+	"github.com/Sanchir01/fitnow/internal/feature/events"
+	constants "github.com/Sanchir01/fitnow/internal/models/contants"
 	"io"
 	"log/slog"
 	"time"
@@ -21,14 +24,16 @@ type ProgramClient interface {
 }
 
 type Service struct {
-	log    *slog.Logger
-	client ProgramClient
+	log          *slog.Logger
+	client       ProgramClient
+	eventservice events.EventRepository
 }
 
-func NewService(log *slog.Logger, client ProgramClient) *Service {
+func NewService(log *slog.Logger, client ProgramClient, eventservice events.EventRepository) *Service {
 	return &Service{
-		log:    log,
-		client: client,
+		log:          log,
+		client:       client,
+		eventservice: eventservice,
 	}
 }
 
@@ -69,7 +74,7 @@ func (s *Service) GetAllProgramAndTrainsCount(ctx context.Context, categoryId uu
 	return programs, nil
 }
 
-func (s *Service) CreateProgram(ctx context.Context, title string, description string, weeks int, level Level, categoryID *uuid.UUID, user_id uuid.UUID) (*domain.Program, error) {
+func (s *Service) CreateProgram(ctx context.Context, title string, description string, weeks int, level domain.Level, categoryID *uuid.UUID, user_id uuid.UUID) (*domain.Program, error) {
 	const op = "Program.Service.CreateProgram"
 	log := s.log.With(slog.String("op", op))
 
@@ -99,6 +104,32 @@ func (s *Service) CreateProgram(ctx context.Context, title string, description s
 		CategoryID: categoryID,
 		CreatedBy:  user_id,
 	}, nil
+}
+
+func (s *Service) PublishProgramCreated(ctx context.Context, userID uuid.UUID, req CreateProgramRequest) error {
+	const op = "Program.Service.PublishProgramCreated"
+	log := s.log.With(slog.String("op", op))
+
+	event := domain.ProgramCreatedEvent{
+		Title:       req.Title,
+		Description: req.Description,
+		Weeks:       req.Weeks,
+		Difficulty:  req.Difficulty,
+		CategoryID:  req.CategoryID,
+		CreatedBy:   userID,
+		CreatedAt:   time.Now(),
+	}
+
+	value, err := json.Marshal(event)
+	if err != nil {
+		log.Error("failed to marshal program.created event", slog.String("err", err.Error()))
+		return err
+	}
+	if err := s.eventservice.CreateEvent(ctx, constants.TopicProgramCreated, string(value)); err != nil {
+		log.Error("failed to publish program.created event", slog.String("err", err.Error()))
+		return err
+	}
+	return nil
 }
 
 func (s *Service) UploadProgramImage(ctx context.Context, programID uuid.UUID, ext, contentType string, size int64, r io.Reader) error {

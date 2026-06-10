@@ -41,13 +41,16 @@ func main() {
 			fmt.Println(err)
 		}
 	}()
-
+	apps.EventService.StartProcessEvents(ctx, apps.Cfg.Kafka.PollInterval)
 	apps.Log.Info("Starting application...")
 	<-ctx.Done()
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer shutdownCancel()
 	if err := apps.HTTPServer.Gracefull(shutdownCtx); err != nil {
+		fmt.Println(err)
+	}
+	if err := apps.KafkaProducer.Close(); err != nil {
 		fmt.Println(err)
 	}
 	apps.Log.Info("Shutting down application...")

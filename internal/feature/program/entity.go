@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-func LevelToProto(level Level) programv1.DifficultyLevel {
+func LevelToProto(level domain.Level) programv1.DifficultyLevel {
 	switch level {
-	case Easy:
+	case domain.Easy:
 		return programv1.DifficultyLevel_DIFFICULTY_LEVEL_EASY
-	case Medium:
+	case domain.Medium:
 		return programv1.DifficultyLevel_DIFFICULTY_LEVEL_MEDIUM
-	case Hard:
+	case domain.Hard:
 		return programv1.DifficultyLevel_DIFFICULTY_LEVEL_HARD
 	default:
 		return programv1.DifficultyLevel_DIFFICULTY_LEVEL_UNSPECIFIED
@@ -21,11 +21,11 @@ func LevelToProto(level Level) programv1.DifficultyLevel {
 }
 
 type CreateProgramRequest struct {
-	Title       string     `json:"title" validate:"required,max=255"`
-	Description string     `json:"description" validate:"required,max=255"`
-	Weeks       int        `json:"weeks" validate:"required"`
-	Difficulty  Level      `json:"difficulty" validate:"required"`
-	CategoryID  *uuid.UUID `json:"category_id" validate:"omitempty"`
+	Title       string       `json:"title" validate:"required,max=255"`
+	Description string       `json:"description" validate:"required,max=255"`
+	Weeks       int          `json:"weeks" validate:"required"`
+	Difficulty  domain.Level `json:"difficulty" validate:"required"`
+	CategoryID  *uuid.UUID   `json:"category_id" validate:"omitempty"`
 }
 type ProgramDB struct {
 	ID         uuid.UUID  `db:"id"`

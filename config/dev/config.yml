@@ -33,6 +33,11 @@ http_server:
   debug: true
   idle_timeout: 60s
 
+kafka:
+  brokers:
+    - localhost:9092
+  poll_interval: 2s
+
 
 
 

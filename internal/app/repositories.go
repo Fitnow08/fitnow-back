@@ -2,8 +2,8 @@ package app
 
 import (
 	"github.com/Sanchir01/fitnow/internal/feature/comment"
+	"github.com/Sanchir01/fitnow/internal/feature/events"
 	"github.com/Sanchir01/fitnow/internal/feature/exercises"
-	"github.com/Sanchir01/fitnow/internal/feature/program"
 	programcategory "github.com/Sanchir01/fitnow/internal/feature/program-category"
 	"github.com/Sanchir01/fitnow/internal/feature/rating"
 	"github.com/Sanchir01/fitnow/internal/feature/train"
@@ -17,8 +17,8 @@ type Repositories struct {
 	TrainCategoryRepository   *traincategory.Repository
 	RatingRepository          *rating.Repository
 	CommentRepository         *comment.Repository
-	ProgramRepository         *program.Repository
 	ProgramCategoryRepository *programcategory.Repository
+	EventRepository           *events.Repository
 }
 
 func NewRepository(db *Database, l *slog.Logger) *Repositories {
@@ -28,7 +28,7 @@ func NewRepository(db *Database, l *slog.Logger) *Repositories {
 		TrainCategoryRepository:   traincategory.NewRepository(db.PrimaryDB, l),
 		CommentRepository:         comment.NewRepository(l, db.PrimaryDB),
 		RatingRepository:          rating.NewRepository(l, db.PrimaryDB),
-		ProgramRepository:         program.NewRepository(l, db.PrimaryDB),
 		ProgramCategoryRepository: programcategory.NewRepository(db.PrimaryDB, l),
+		EventRepository:           events.NewRepository(l, db.PrimaryDB),
 	}
 }
