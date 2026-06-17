@@ -4,3 +4,6 @@ Todo.txt
 .bin
 .env.dev
 .env.prod
+.bin/
+*.exe
+./tmp
