@@ -32,7 +32,7 @@ func NewServices(repo *Repositories, s3minio *S3, clients *Clients, producer *ka
 
 	return &Services{
 		AuthService:            auth.NewService(l, clients.AuthClient),
-		TrainService:           train.NewService(l, s3minio.TrainBucket, repo.TrainRepository),
+		TrainService:           train.NewService(l, s3minio.TrainBucket, repo.TrainRepository, clients.TrainClient),
 		ExercisesService:       exercises.NewService(l, repo.ExercisesRepository, s3minio.ExercisesBucket),
 		TrainCategoryService:   traincategory.NewService(l, repo.TrainCategoryRepository),
 		RatingService:          rating.NewService(l, repo.RatingRepository),

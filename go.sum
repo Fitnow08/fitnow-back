@@ -2,8 +2,8 @@ buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-2025042515311
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-20250425153114-8976f5be98c1.1/go.mod h1:avRlCjnFzl98VPaeCtJ24RrV/wwHFzB8sWXhj26+n/U=
 github.com/AfterShip/email-verifier v1.4.1 h1:vDmnqq680siSLw8rtiAYaqgmqYeW+AUoMfEY1RjWK8k=
 github.com/AfterShip/email-verifier v1.4.1/go.mod h1:AcFyA5b7X6L4l5dBuemWBSh8mq74nxkBTtoWgLOFrbw=
-github.com/Fitnow08/fitnow-proto v0.0.0-20260607112418-84fdfdf9bfd0 h1:kGPoRAr7cYhy3chCAX1/gzd8PRbc8dIvHsRnfPRZi34=
-github.com/Fitnow08/fitnow-proto v0.0.0-20260607112418-84fdfdf9bfd0/go.mod h1:Y/PBYN29qmGtoY33JueQRQKMl17Z7YZXWW8n3fzRVXo=
+github.com/Fitnow08/fitnow-proto v0.0.0-20260611125955-a9b228ade72c h1:p/aX6D+MBuwszOjQVsNA3velRqUMyLbYz3dKcPS2N2w=
+github.com/Fitnow08/fitnow-proto v0.0.0-20260611125955-a9b228ade72c/go.mod h1:Y/PBYN29qmGtoY33JueQRQKMl17Z7YZXWW8n3fzRVXo=
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=
 github.com/KyleBanks/depth v1.2.1/go.mod h1:jzSb9d0L43HxTQfT+oSA1EEp2q+ne2uh6XgeJcm8brE=
 github.com/Masterminds/squirrel v1.5.4 h1:uUcX/aBc8O7Fg9kaISIUsHXdKuqehiXAMQTYX8afzqM=

@@ -3,6 +3,7 @@ package app
 import (
 	authgrpc "github.com/Sanchir01/fitnow/internal/clients/grpc/auth"
 	catalogrpc "github.com/Sanchir01/fitnow/internal/clients/grpc/catalog"
+	traingrpc "github.com/Sanchir01/fitnow/internal/clients/grpc/train"
 	"github.com/Sanchir01/fitnow/internal/config"
 	"log/slog"
 )
@@ -10,6 +11,7 @@ import (
 type Clients struct {
 	AuthClient    *authgrpc.AuthClient
 	ProgramClient *catalogrpc.ProgramClient
+	TrainClient   *traingrpc.TrainClient
 }
 
 func NewClients(cfg *config.Config, l *slog.Logger) (*Clients, error) {
@@ -23,8 +25,14 @@ func NewClients(cfg *config.Config, l *slog.Logger) (*Clients, error) {
 		l.Info("programClient", "err", err.Error())
 		return nil, err
 	}
+	trainClient, err := traingrpc.NewTrainClient(l, cfg.Clients.CatalogClient)
+	if err != nil {
+		l.Info("trainClient", "err", err.Error())
+		return nil, err
+	}
 	return &Clients{
 		AuthClient:    authClient,
 		ProgramClient: programClient,
+		TrainClient:   trainClient,
 	}, nil
 }

@@ -27,6 +27,7 @@ type Kafka struct {
 type Clients struct {
 	Auth          Client `yaml:"auth_client"`
 	CatalogClient Client `yaml:"catalog_client"`
+	TrainClient   Client `yaml:"train_client"`
 }
 type Client struct {
 	Address  string        `yaml:"address"`

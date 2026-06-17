@@ -46,11 +46,12 @@ type CreateExerciseRequest struct {
 	Description string `json:"description"`
 }
 type AllTrainsParams struct {
-	Page       uint64    `json:"page"`
+	Cursor     string    `json:"cursor"`
 	Limit      uint64    `json:"size"`
 	CategoryId uuid.UUID `json:"category_id"`
 	Text       string    `json:"text"`
 }
+
 type TrainExerciseInput struct {
 	ExerciseID uuid.UUID `json:"exercise_id" validate:"required"`
 	Steps      int       `json:"steps" validate:"required,min=1"`

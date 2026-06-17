@@ -1,2 +1,6 @@
 Todo.txt
 /bin
+.idea
+.bin
+.env.dev
+.env.prod

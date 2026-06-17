@@ -62,12 +62,7 @@ func (h *Handler) GetAllTrains(w http.ResponseWriter, r *http.Request) {
 	const op = "Train.Handler.GetAllTrains"
 	log := h.log.With("op", op)
 	q := r.URL.Query()
-	page := 1
-	if v := q.Get("page"); v != "" {
-		if l, err := strconv.Atoi(v); err == nil && l > 0 {
-			page = l
-		}
-	}
+	cursor := q.Get("cursor")
 	limit := 20
 	if v := q.Get("limit"); v != "" {
 		if l, err := strconv.Atoi(v); err == nil {
@@ -92,7 +87,7 @@ func (h *Handler) GetAllTrains(w http.ResponseWriter, r *http.Request) {
 	}
 	search := q.Get("search")
 	allTrainsParams := AllTrainsParams{
-		Page:       uint64(page),
+		Cursor:     cursor,
 		Limit:      uint64(limit),
 		CategoryId: categoryID,
 		Text:       search,

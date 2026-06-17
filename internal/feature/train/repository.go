@@ -36,13 +36,13 @@ func NewRepository(db *pgxpool.Pool, log *slog.Logger) *Repository {
 }
 
 func (r *Repository) GetAllPublicTrains(ctx context.Context, param AllTrainsParams) ([]*TrainDB, error) {
-	offset := (param.Page - 1) * param.Limit
+
 	builder := sq.
 		Select("id", "title", "type", "duration", "is_public", "difficulty", "calories", "created_by", "created_at", "version", "image_path", "category_id").
 		From("trains").
 		Where(sq.Eq{"is_public": true}).
 		Limit(param.Limit).
-		Offset(offset)
+		Offset(0)
 
 	if param.CategoryId != uuid.Nil {
 		builder = builder.Where(sq.Eq{"category_id": param.CategoryId})
